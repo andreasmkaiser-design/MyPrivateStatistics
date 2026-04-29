@@ -2,17 +2,17 @@
 
 ## Current
 
-- **Issue:** #2 Slice 1: Project Scaffold + CI/CD
-- **Branch:** feature/issue-2-project-scaffold
-- **Started:** 2026-04-29
-- **Status:** In progress — tests green, pending PR
+- **Issue:** #13 Category Data Layer
+- **Branch:** feature/issue-13-category-data-layer
+- **Started:** —
+- **Status:** Not started
 - **Resume from:** —
 
 ## Completed
 
 | Issue | Title | PR | Date |
 |---|---|---|---|
-| — | — | — | — |
+| #2 | Project Scaffold + CI/CD | (initial commit on main) | 2026-04-29 |
 
 ## Pending (dependency order)
 
