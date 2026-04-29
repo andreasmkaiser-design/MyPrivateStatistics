@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@evilmartians/lefthook": "^2.1.6"
+  }
+}

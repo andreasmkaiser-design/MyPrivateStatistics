@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/p/Program Files/GitHub CLI/gh.exe\" issue view 1 --repo andreasmkaiser-design/MyPrivateStatistics)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 1: Project Scaffold + CI/CD' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_issue_tmp.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 2: Category Management' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_issue_tmp.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 4: Event Capture — Time Ranges' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_issue_tmp.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 5: Statistics — Co-Occurrence + KPI Cards + Bar Chart' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_issue_tmp.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 6: Statistics — Temporal Proximity' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_issue_tmp.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 2b: Category UI' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_tmp_issue.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 3a: Event Data Layer' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_tmp_issue.md)",
+      "Bash('/p/Program Files/GitHub CLI/gh.exe' issue create --repo andreasmkaiser-design/MyPrivateStatistics --title 'Slice 3b: Calendar UI + Event Creation Flow' --body-file t:/Data/github/MyPrivateStatistics/MyPrivateStatistics/_tmp_issue.md)",
+      "Bash(chmod +x ~/.claude/hooks/block-dangerous-git.sh)",
+      "Bash(~/.claude/hooks/block-dangerous-git.sh)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(python3 -c *)",
+      "Bash(python -c *)",
+      "Bash(\"/p/Program Files/GitHub CLI/gh.exe\" issue view 2 --repo MyPrivateStatistics/MyPrivateStatistics)",
+      "Bash(\"/p/Program Files/GitHub CLI/gh.exe\" issue view 2 --repo andreasmkaiser-design/MyPrivateStatistics)",
+      "Bash(flutter --version)",
+      "Bash(flutter create *)"
+    ]
+  }
+}

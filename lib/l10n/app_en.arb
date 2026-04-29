@@ -1,0 +1,27 @@
+{
+  "@@locale": "en",
+  "appTitle": "Private Statistics",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "navCalendar": "Calendar",
+  "@navCalendar": {
+    "description": "Bottom navigation label for Calendar tab"
+  },
+  "navEvents": "Events",
+  "@navEvents": {
+    "description": "Bottom navigation label for Events tab"
+  },
+  "navStatistics": "Statistics",
+  "@navStatistics": {
+    "description": "Bottom navigation label for Statistics tab"
+  },
+  "navCategories": "Categories",
+  "@navCategories": {
+    "description": "Bottom navigation label for Categories tab"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title of the Settings screen"
+  }
+}
