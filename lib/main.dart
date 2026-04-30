@@ -5,6 +5,10 @@ import 'package:private_statistics/core/database/app_database.dart';
 import 'package:private_statistics/core/database/database_provider.dart';
 import 'package:private_statistics/core/logging/app_logger.dart';
 
+/// Application entry point.
+///
+/// Initialises the [AppDatabase] and injects it via [ProviderScope] before
+/// running [App].
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final db = AppDatabase();

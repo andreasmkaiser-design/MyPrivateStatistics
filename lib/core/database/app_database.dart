@@ -2,19 +2,52 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:private_statistics/features/categories/data/drift/categories_table.dart';
+import 'package:private_statistics/features/categories/data/drift/fields_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase()
+/// The app's Drift database.
+///
+/// Exposes the [Categories] and [Fields] tables and manages schema migrations.
+/// Use [AppDatabase.forTesting] to create an in-memory instance for tests.
+@DriftDatabase(tables: [Categories, Fields])
 class AppDatabase extends _$AppDatabase {
+  /// Creates the production database backed by an on-device SQLite file.
   AppDatabase() : super(_openConnection());
 
+  /// Creates an in-memory database for use in tests.
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    beforeOpen: (_) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+    onCreate: (m) async => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (kDebugMode) {
+        // Destructive in debug: drop all and recreate for fast iteration.
+        await customStatement('PRAGMA foreign_keys = OFF');
+        for (final table in allTables.toList().reversed) {
+          await m.deleteTable(table.actualTableName);
+        }
+        await customStatement('PRAGMA foreign_keys = ON');
+        await m.createAll();
+      } else {
+        if (from < 2) {
+          await m.createTable(categories);
+          await m.createTable(fields);
+        }
+      }
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

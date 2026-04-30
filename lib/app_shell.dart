@@ -6,7 +6,10 @@ import 'package:private_statistics/features/settings/presentation/settings_scree
 import 'package:private_statistics/features/statistics/presentation/statistics_screen.dart';
 import 'package:private_statistics/l10n/app_localizations.dart';
 
+/// Root scaffold that hosts the bottom [NavigationBar] and the four main
+/// feature screens (Calendar, Events, Statistics, Categories).
 class AppShell extends StatefulWidget {
+  /// Creates the [AppShell].
   const AppShell({super.key});
 
   @override

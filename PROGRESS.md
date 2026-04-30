@@ -4,9 +4,9 @@
 
 - **Issue:** #13 Category Data Layer
 - **Branch:** feature/issue-13-category-data-layer
-- **Started:** —
-- **Status:** Not started
-- **Resume from:** —
+- **Started:** 2026-04-30
+- **Status:** In progress — /tdd (design complete, ready to implement)
+- **Resume from:** Interface design agreed. Start /tdd from domain models (Category, Field, ResolvedField, CategoryNode, TimeModel, FieldType, FieldConstraint), then SchemaInheritanceResolver, then CategoryRepository (Drift impl + watchTree), then Riverpod providers. Exceptions: CategoryDepthLimitExceededException, CategoryNotFoundException, DuplicateCategoryNameException, CannotModifyInheritedFieldException, InvalidFieldConstraintException. Repository exposes watchTree() → Stream<List<CategoryNode>> (resolver runs inside repo). Resolver is pure synchronous domain class. save(Category) = upsert. delete(uid) cascades.
 
 ## Completed
 

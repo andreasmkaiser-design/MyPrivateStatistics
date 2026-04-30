@@ -30,6 +30,7 @@ These apply to every session, every file, every commit:
 - **Error display:** validation errors inline; infrastructure errors via central Snackbar (ADR-0014)
 - **Logging:** use `AppLogger` — never log PII; use correct level; debug/verbose suppressed in release (ADR-0015)
 - **Migrations:** every new Drift table or column change gets a numbered migration (ADR-0016)
+- **Dartdoc:** every public API must have `///` dartdoc — classes, constructors, fields, methods, getters, enum values; `public_member_api_docs: true` is enforced by the linter; use backticks for cross-file references not imported in the current file
 - **Terminology:** use domain terms from UBIQUITOUS_LANGUAGE.md in all identifiers (`Event` not `Entry`, `Template` not `Export`, `AnalysisWindow` not `Period`)
 
 ## Folder Structure
