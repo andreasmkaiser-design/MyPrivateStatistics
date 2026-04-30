@@ -2,17 +2,18 @@
 
 ## Current
 
-- **Issue:** #13 Category Data Layer
-- **Branch:** feature/issue-13-category-data-layer
-- **Started:** 2026-04-30
-- **Status:** In progress — /tdd (design complete, ready to implement)
-- **Resume from:** Interface design agreed. Start /tdd from domain models (Category, Field, ResolvedField, CategoryNode, TimeModel, FieldType, FieldConstraint), then SchemaInheritanceResolver, then CategoryRepository (Drift impl + watchTree), then Riverpod providers. Exceptions: CategoryDepthLimitExceededException, CategoryNotFoundException, DuplicateCategoryNameException, CannotModifyInheritedFieldException, InvalidFieldConstraintException. Repository exposes watchTree() → Stream<List<CategoryNode>> (resolver runs inside repo). Resolver is pure synchronous domain class. save(Category) = upsert. delete(uid) cascades.
+- **Issue:** #14 Category UI
+- **Branch:** (open next branch from feature/issue-13-category-data-layer)
+- **Started:** —
+- **Status:** Not started
+- **Resume from:** Start fresh — read issue #14, run /design-an-interface for the presentation layer, then /tdd.
 
 ## Completed
 
 | Issue | Title | PR | Date |
 |---|---|---|---|
 | #2 | Project Scaffold + CI/CD | (initial commit on main) | 2026-04-29 |
+| #13 | Category Data Layer | feature/issue-13-category-data-layer | 2026-04-30 |
 
 ## Pending (dependency order)
 
@@ -36,10 +37,8 @@
 
 | Issue | Title | Waiting for |
 |---|---|---|
-| #13 | Category Data Layer | #2 |
 | #9 | Health Connect Integration | #2 |
 | #11 | Backup & Restore | #2 |
-| #14 | Category UI | #13 |
 | #15 | Event Data Layer | #13 |
 | #16 | Calendar UI + Event Creation Flow | #14, #15 |
 | #10 | JSON Template Export / Import | #14 |
