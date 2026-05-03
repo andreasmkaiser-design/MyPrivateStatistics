@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #14 Category UI
-- **Branch:** (open next branch from feature/issue-13-category-data-layer)
+- **Issue:** #15 Event Data Layer
+- **Branch:** (open from feature/issue-14-category-ui)
 - **Started:** —
 - **Status:** Not started
-- **Resume from:** Start fresh — read issue #14, run /design-an-interface for the presentation layer, then /tdd.
+- **Resume from:** Start fresh — read issue #15, run /design-an-interface for the data layer, then /tdd.
 
 ## Completed
 
@@ -14,6 +14,7 @@
 |---|---|---|---|
 | #2 | Project Scaffold + CI/CD | (initial commit on main) | 2026-04-29 |
 | #13 | Category Data Layer | feature/issue-13-category-data-layer | 2026-04-30 |
+| #14 | Category UI | feature/issue-14-category-ui | 2026-05-03 |
 
 ## Pending (dependency order)
 

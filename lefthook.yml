@@ -7,5 +7,7 @@ pre-commit:
       run: flutter analyze --no-fatal-infos
     test:
       # flutter test (full suite) OOMs on Windows / Dart 3.11 JIT; scope to
-      # test/features/ which covers all unit and widget tests without crashing.
-      run: flutter test test/features/ --no-pub
+      # test/features/ and run sequentially (--concurrency=1) to stay within
+      # JIT memory limits. Glob skips the hook when no Dart files are staged.
+      glob: "**/*.dart"
+      run: flutter test test/features/ --no-pub --concurrency=1
