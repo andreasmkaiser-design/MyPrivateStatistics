@@ -5,6 +5,12 @@ import 'package:private_statistics/features/categories/domain/models/category.da
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/domain/repositories/category_repository.dart';
 
+/// Tracks which category UIDs are expanded in the category tree.
+///
+/// The tree starts fully collapsed. Adding a UID to this set expands that
+/// node; removing it collapses it.
+final expandedCategoryUidsProvider = StateProvider<Set<String>>((ref) => {});
+
 /// Provides the [CategoryRepository] backed by the app's Drift database.
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
   return CategoryRepositoryImpl(ref.watch(appDatabaseProvider));

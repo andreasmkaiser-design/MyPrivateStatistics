@@ -6,4 +6,6 @@ pre-commit:
     analyze:
       run: flutter analyze --no-fatal-infos
     test:
-      run: flutter test
+      # flutter test (full suite) OOMs on Windows / Dart 3.11 JIT; scope to
+      # test/features/ which covers all unit and widget tests without crashing.
+      run: flutter test test/features/ --no-pub
