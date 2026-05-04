@@ -7,14 +7,17 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:private_statistics/features/categories/data/drift/categories_table.dart';
 import 'package:private_statistics/features/categories/data/drift/fields_table.dart';
+import 'package:private_statistics/features/events/data/drift/event_field_values_table.dart';
+import 'package:private_statistics/features/events/data/drift/events_table.dart';
 
 part 'app_database.g.dart';
 
 /// The app's Drift database.
 ///
-/// Exposes the [Categories] and [Fields] tables and manages schema migrations.
+/// Exposes the [Categories], [Fields], [Events], and [EventFieldValues] tables
+/// and manages schema migrations.
 /// Use [AppDatabase.forTesting] to create an in-memory instance for tests.
-@DriftDatabase(tables: [Categories, Fields])
+@DriftDatabase(tables: [Categories, Fields, Events, EventFieldValues])
 class AppDatabase extends _$AppDatabase {
   /// Creates the production database backed by an on-device SQLite file.
   AppDatabase() : super(_openConnection());
@@ -23,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -44,6 +47,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(categories);
           await m.createTable(fields);
+        }
+        if (from < 3) {
+          await m.createTable(events);
+          await m.createTable(eventFieldValues);
         }
       }
     },

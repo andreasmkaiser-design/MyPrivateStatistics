@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #15 Event Data Layer
-- **Branch:** (open from feature/issue-14-category-ui)
+- **Issue:** #16 Calendar UI + Event Creation Flow
+- **Branch:** (open from feature/issue-15-event-data-layer)
 - **Started:** —
 - **Status:** Not started
-- **Resume from:** Start fresh — read issue #15, run /design-an-interface for the data layer, then /tdd.
+- **Resume from:** Start fresh — read issue #16, run /design-an-interface for the UI, then /tdd.
 
 ## Completed
 
@@ -15,6 +15,7 @@
 | #2 | Project Scaffold + CI/CD | (initial commit on main) | 2026-04-29 |
 | #13 | Category Data Layer | feature/issue-13-category-data-layer | 2026-04-30 |
 | #14 | Category UI | feature/issue-14-category-ui | 2026-05-03 |
+| #15 | Event Data Layer | feature/issue-15-event-data-layer | 2026-05-04 |
 
 ## Pending (dependency order)
 
