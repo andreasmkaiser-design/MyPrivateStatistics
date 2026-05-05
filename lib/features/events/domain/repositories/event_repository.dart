@@ -30,4 +30,12 @@ abstract class EventRepository {
   /// The [month] argument needs only [DateTime.year] and [DateTime.month] to
   /// be meaningful; day and sub-day components are ignored.
   Stream<Set<DateTime>> watchDaysWithEventsInMonth(DateTime month);
+
+  /// Returns all events whose occurrence overlaps the calendar window
+  /// [[from], [to]] (both endpoints inclusive, day-precision).
+  ///
+  /// Range events are included when their interval overlaps the window.
+  /// [from] and [to] need only carry year/month/day; time components are
+  /// ignored.
+  Future<List<Event>> findInWindow(DateTime from, DateTime to);
 }

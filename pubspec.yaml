@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   drift: ^2.22.0
+  fl_chart: ^1.2.0
   flutter:
     sdk: flutter
   flutter_localizations:

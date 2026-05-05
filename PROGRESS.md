@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #18 (next unblocked issue)
-- **Branch:** —
-- **Started:** —
-- **Status:** Not started
-- **Resume from:** Read the next unblocked issue from the Pending table below.
+- **Issue:** #6 (Statistics — Co-Occurrence + KPI Cards + Bar Chart)
+- **Branch:** feature/issue-6-statistics-co-occurrence
+- **Started:** 2026-05-05
+- **Status:** Implementation complete — awaiting user review before commit
+- **Resume from:** Review changed files, commit, open PR, update Completed table
 
 ## Completed
 

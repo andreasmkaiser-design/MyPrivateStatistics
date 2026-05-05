@@ -80,6 +80,34 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
+  Future<List<Event>> findInWindow(DateTime from, DateTime to) async {
+    final fromMs = DateTime(
+      from.year,
+      from.month,
+      from.day,
+    ).millisecondsSinceEpoch;
+    final toExclusiveMs = DateTime(
+      to.year,
+      to.month,
+      to.day + 1,
+    ).millisecondsSinceEpoch;
+
+    final rows =
+        await (_db.select(_db.events)..where(
+              (t) =>
+                  (t.rangeEndMs.isNull() &
+                      t.occurredAtMs.isBiggerOrEqualValue(fromMs) &
+                      t.occurredAtMs.isSmallerThanValue(toExclusiveMs)) |
+                  (t.rangeEndMs.isNotNull() &
+                      t.occurredAtMs.isSmallerThanValue(toExclusiveMs) &
+                      t.rangeEndMs.isBiggerOrEqualValue(fromMs)),
+            ))
+            .get();
+
+    return Future.wait(rows.map(_toEvent));
+  }
+
+  @override
   Stream<Set<DateTime>> watchDaysWithEventsInMonth(DateTime month) {
     return _db
         .customSelect('SELECT 1', readsFrom: {_db.events})
