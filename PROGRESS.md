@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #5 — Event Capture: Time Ranges
-- **Branch:** feature/issue-5-time-ranges
-- **Started:** 2026-05-05
-- **Status:** Implementation complete, tests pass, awaiting user review before final commit
-- **Resume from:** All acceptance and test criteria implemented. Pause for user review, then commit + PR.
+- **Issue:** #18 (next unblocked issue)
+- **Branch:** —
+- **Started:** —
+- **Status:** Not started
+- **Resume from:** Read the next unblocked issue from the Pending table below.
 
 ## Completed
 
@@ -17,6 +17,7 @@
 | #14 | Category UI | feature/issue-14-category-ui | 2026-05-03 |
 | #15 | Event Data Layer | feature/issue-15-event-data-layer | 2026-05-04 |
 | #16 | Calendar UI + Event Creation Flow | feature/issue-16-calendar-ui | 2026-05-05 |
+| #5 | Event Capture — Time Ranges | feature/issue-5-time-ranges | 2026-05-05 |
 
 ## Pending (dependency order)
 
