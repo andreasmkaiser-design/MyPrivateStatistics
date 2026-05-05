@@ -26,3 +26,15 @@ final eventsByDayProvider = StreamProvider.family<List<Event>, DateTime>((
 final eventProvider = FutureProvider.family<Event?, String>((ref, uid) {
   return ref.watch(eventRepositoryProvider).findByUid(uid);
 });
+
+/// Reactive stream of calendar days in the given month that have at least one
+/// event, re-emitting on any event change.
+///
+/// Each day is a midnight-normalised [DateTime]. The `month` argument needs
+/// only year and month to be meaningful.
+/// Backed by [EventRepository.watchDaysWithEventsInMonth].
+final eventDaysInMonthProvider = StreamProvider.family<Set<DateTime>, DateTime>(
+  (ref, month) {
+    return ref.watch(eventRepositoryProvider).watchDaysWithEventsInMonth(month);
+  },
+);

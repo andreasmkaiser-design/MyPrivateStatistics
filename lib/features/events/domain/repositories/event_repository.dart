@@ -23,4 +23,11 @@ abstract class EventRepository {
 
   /// Deletes the event with [uid]. No-op if the event does not exist.
   Future<void> delete(String uid);
+
+  /// Emits the set of days (midnight [DateTime] values) within [month] that
+  /// have at least one event, re-emitting on any event change.
+  ///
+  /// The [month] argument needs only [DateTime.year] and [DateTime.month] to
+  /// be meaningful; day and sub-day components are ignored.
+  Stream<Set<DateTime>> watchDaysWithEventsInMonth(DateTime month);
 }

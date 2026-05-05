@@ -72,6 +72,32 @@ class EventRepositoryImpl implements EventRepository {
     await (_db.delete(_db.events)..where((t) => t.uid.equals(uid))).go();
   }
 
+  @override
+  Stream<Set<DateTime>> watchDaysWithEventsInMonth(DateTime month) {
+    return _db
+        .customSelect('SELECT 1', readsFrom: {_db.events})
+        .watch()
+        .asyncMap((_) => _queryDaysInMonth(month));
+  }
+
+  Future<Set<DateTime>> _queryDaysInMonth(DateTime month) async {
+    final startMs = DateTime(month.year, month.month).millisecondsSinceEpoch;
+    final endMs = DateTime(month.year, month.month + 1).millisecondsSinceEpoch;
+    final rows =
+        await (_db.select(_db.events)..where(
+              (t) =>
+                  t.occurredAtMs.isBiggerOrEqualValue(startMs) &
+                  t.occurredAtMs.isSmallerThanValue(endMs),
+            ))
+            .get();
+    final days = <DateTime>{};
+    for (final row in rows) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
+      days.add(DateTime(dt.year, dt.month, dt.day));
+    }
+    return days;
+  }
+
   Future<List<Event>> _queryByDay(DateTime day) async {
     final startMs = DateTime(
       day.year,

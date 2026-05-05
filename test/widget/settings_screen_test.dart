@@ -5,10 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:private_statistics/app.dart';
 import 'package:private_statistics/core/database/app_database.dart';
 import 'package:private_statistics/core/database/database_provider.dart';
+import 'package:private_statistics/features/categories/providers/category_providers.dart';
+import 'package:private_statistics/features/events/providers/event_providers.dart';
 import 'package:private_statistics/features/settings/presentation/settings_screen.dart';
 
 Widget _buildApp(AppDatabase db) => ProviderScope(
-  overrides: [appDatabaseProvider.overrideWithValue(db)],
+  overrides: [
+    appDatabaseProvider.overrideWithValue(db),
+    categoryTreeProvider.overrideWith((_) => Stream.value(const [])),
+    eventDaysInMonthProvider.overrideWith((ref, _) => Stream.value(const {})),
+    eventsByDayProvider.overrideWith((ref, _) => Stream.value(const [])),
+  ],
   child: const App(),
 );
 
