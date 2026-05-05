@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #17 (next unblocked issue)
-- **Branch:** —
-- **Started:** —
-- **Status:** Not started
-- **Resume from:** Read the next unblocked issue from the Pending table below.
+- **Issue:** #5 — Event Capture: Time Ranges
+- **Branch:** feature/issue-5-time-ranges
+- **Started:** 2026-05-05
+- **Status:** Implementation complete, tests pass, awaiting user review before final commit
+- **Resume from:** All acceptance and test criteria implemented. Pause for user review, then commit + PR.
 
 ## Completed
 

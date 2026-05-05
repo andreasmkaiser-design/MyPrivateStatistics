@@ -5,6 +5,7 @@ import 'package:private_statistics/core/logging/app_logger.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
+import 'package:private_statistics/features/events/domain/models/event_time.dart';
 import 'package:private_statistics/features/events/presentation/event_form_screen.dart';
 import 'package:private_statistics/features/events/providers/event_providers.dart';
 
@@ -145,12 +146,19 @@ class _EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final clockTime = event.occurredAt.clockTime;
+    final subtitle = switch (event.occurredAt) {
+      TimePoint(:final clockTime) when clockTime != null =>
+        DateFormat.jm().format(clockTime),
+      DayPreciseRange(:final from, :final to) =>
+        '${DateFormat.MMMd().format(from)} – ${DateFormat.MMMd().format(to)}',
+      DatetimePreciseRange(:final from, :final to) =>
+        '${DateFormat.MMMd().add_jm().format(from)}'
+            ' – ${DateFormat.MMMd().add_jm().format(to)}',
+      _ => null,
+    };
     return ListTile(
       title: Text(categoryName),
-      subtitle: clockTime != null
-          ? Text(DateFormat.jm().format(clockTime))
-          : null,
+      subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: PopupMenuButton<_EventAction>(
         onSelected: (action) {
           if (action == _EventAction.edit) onEdit();

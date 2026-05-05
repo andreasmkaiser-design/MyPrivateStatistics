@@ -10,8 +10,8 @@ import 'package:private_statistics/features/categories/domain/models/time_model.
 import 'package:private_statistics/features/events/data/event_repository_impl.dart';
 import 'package:private_statistics/features/events/domain/exceptions.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
+import 'package:private_statistics/features/events/domain/models/event_time.dart';
 import 'package:private_statistics/features/events/domain/models/field_value.dart';
-import 'package:private_statistics/features/events/domain/models/time_point.dart';
 
 void main() {
   late AppDatabase db;
@@ -28,13 +28,14 @@ void main() {
 
   Future<void> seedCategory({
     String uid = 'cat1',
+    TimeModel timeModel = TimeModel.timePoint,
     List<Field> fields = const [],
   }) async {
     await categoryRepo.save(
       Category(
         uid: uid,
         name: 'Test Category',
-        timeModel: TimeModel.timePoint,
+        timeModel: timeModel,
         ownFields: fields,
       ),
     );
@@ -56,6 +57,8 @@ void main() {
     constraint: constraint,
     enumOptions: enumOptions,
   );
+
+  // ── Time-point tests (existing) ───────────────────────────────────────────
 
   test(
     'create event with all four field types and read back correctly',
@@ -195,7 +198,7 @@ void main() {
     );
 
     final found = await repo.findByUid('e1');
-    expect(found!.occurredAt.clockTime, isNotNull);
+    expect((found!.occurredAt as TimePoint).clockTime, isNotNull);
     expect(
       found.fieldValues.whereType<IntFieldValue>().first.value,
       equals(99),
@@ -295,6 +298,185 @@ void main() {
         ),
       ),
       throwsA(isA<EventFieldConstraintViolationException>()),
+    );
+  });
+
+  // ── Day-precise range tests ───────────────────────────────────────────────
+
+  test('day-precise range event stored and read back correctly', () async {
+    await seedCategory(timeModel: TimeModel.dayPreciseRange);
+
+    await repo.save(
+      Event(
+        uid: 'r1',
+        categoryUid: 'cat1',
+        occurredAt: DayPreciseRange(
+          from: DateTime(2026, 5, 4),
+          to: DateTime(2026, 5, 6),
+        ),
+        fieldValues: const [],
+      ),
+    );
+
+    final found = await repo.findByUid('r1');
+    expect(found, isNotNull);
+    final range = found!.occurredAt as DayPreciseRange;
+    expect(range.from, equals(DateTime(2026, 5, 4)));
+    expect(range.to, equals(DateTime(2026, 5, 6)));
+  });
+
+  test(
+    'day-precise range spanning 3 days appears in all 3 day queries',
+    () async {
+      await seedCategory(timeModel: TimeModel.dayPreciseRange);
+
+      await repo.save(
+        Event(
+          uid: 'r1',
+          categoryUid: 'cat1',
+          occurredAt: DayPreciseRange(
+            from: DateTime(2026, 5, 4),
+            to: DateTime(2026, 5, 6),
+          ),
+          fieldValues: const [],
+        ),
+      );
+
+      for (final day in [
+        DateTime(2026, 5, 4),
+        DateTime(2026, 5, 5),
+        DateTime(2026, 5, 6),
+      ]) {
+        final events = await repo.watchByDay(day).first;
+        expect(events, hasLength(1), reason: 'Expected event on ${day.day}');
+        expect(events.first.uid, equals('r1'));
+      }
+
+      // Day outside the range must not contain the event.
+      final outside = await repo.watchByDay(DateTime(2026, 5, 7)).first;
+      expect(outside, isEmpty);
+    },
+  );
+
+  test(
+    'watchDaysWithEventsInMonth returns all days spanned by range event',
+    () async {
+      await seedCategory(timeModel: TimeModel.dayPreciseRange);
+
+      await repo.save(
+        Event(
+          uid: 'r1',
+          categoryUid: 'cat1',
+          occurredAt: DayPreciseRange(
+            from: DateTime(2026, 5, 4),
+            to: DateTime(2026, 5, 6),
+          ),
+          fieldValues: const [],
+        ),
+      );
+
+      final days = await repo
+          .watchDaysWithEventsInMonth(DateTime(2026, 5))
+          .first;
+      expect(
+        days,
+        containsAll([
+          DateTime(2026, 5, 4),
+          DateTime(2026, 5, 5),
+          DateTime(2026, 5, 6),
+        ]),
+      );
+      expect(days, hasLength(3));
+    },
+  );
+
+  test('day-precise range: to-date before from-date is rejected', () async {
+    await seedCategory(timeModel: TimeModel.dayPreciseRange);
+
+    await expectLater(
+      repo.save(
+        Event(
+          uid: 'r-bad',
+          categoryUid: 'cat1',
+          occurredAt: DayPreciseRange(
+            from: DateTime(2026, 5, 6),
+            to: DateTime(2026, 5, 4),
+          ),
+          fieldValues: const [],
+        ),
+      ),
+      throwsA(isA<EventRangeInvalidException>()),
+    );
+  });
+
+  // ── Datetime-precise range tests ──────────────────────────────────────────
+
+  test('datetime-precise range event stored and read back correctly', () async {
+    await seedCategory(timeModel: TimeModel.datetimePreciseRange);
+
+    await repo.save(
+      Event(
+        uid: 'dt1',
+        categoryUid: 'cat1',
+        occurredAt: DatetimePreciseRange(
+          from: DateTime(2026, 5, 4, 10),
+          to: DateTime(2026, 5, 4, 14, 30),
+        ),
+        fieldValues: const [],
+      ),
+    );
+
+    final found = await repo.findByUid('dt1');
+    expect(found, isNotNull);
+    final range = found!.occurredAt as DatetimePreciseRange;
+    expect(range.from, equals(DateTime(2026, 5, 4, 10)));
+    expect(range.to, equals(DateTime(2026, 5, 4, 14, 30)));
+  });
+
+  test(
+    'datetime-precise range spanning 2 days appears in both day queries',
+    () async {
+      await seedCategory(timeModel: TimeModel.datetimePreciseRange);
+
+      await repo.save(
+        Event(
+          uid: 'dt1',
+          categoryUid: 'cat1',
+          occurredAt: DatetimePreciseRange(
+            from: DateTime(2026, 5, 4, 22),
+            to: DateTime(2026, 5, 5, 6),
+          ),
+          fieldValues: const [],
+        ),
+      );
+
+      final day4 = await repo.watchByDay(DateTime(2026, 5, 4)).first;
+      expect(day4, hasLength(1));
+
+      final day5 = await repo.watchByDay(DateTime(2026, 5, 5)).first;
+      expect(day5, hasLength(1));
+
+      final day6 = await repo.watchByDay(DateTime(2026, 5, 6)).first;
+      expect(day6, isEmpty);
+    },
+  );
+
+  test('datetime-precise range: to before from is rejected', () async {
+    await seedCategory(timeModel: TimeModel.datetimePreciseRange);
+
+    await expectLater(
+      repo.save(
+        Event(
+          uid: 'dt-bad',
+          categoryUid: 'cat1',
+          occurredAt: DatetimePreciseRange(
+            from: DateTime(2026, 5, 4, 14),
+            to: DateTime(2026, 5, 4, 10),
+          ),
+          fieldValues: const [],
+        ),
+      ),
+      throwsA(isA<EventRangeInvalidException>()),
     );
   });
 }

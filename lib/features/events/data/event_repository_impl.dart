@@ -8,8 +8,8 @@ import 'package:private_statistics/features/categories/domain/models/field_const
 import 'package:private_statistics/features/categories/domain/models/field_type.dart';
 import 'package:private_statistics/features/events/domain/exceptions.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
+import 'package:private_statistics/features/events/domain/models/event_time.dart';
 import 'package:private_statistics/features/events/domain/models/field_value.dart';
-import 'package:private_statistics/features/events/domain/models/time_point.dart';
 import 'package:private_statistics/features/events/domain/repositories/event_repository.dart';
 
 /// Drift-backed implementation of [EventRepository].
@@ -17,6 +17,11 @@ import 'package:private_statistics/features/events/domain/repositories/event_rep
 /// Stores each event as a row in the `events` table with its typed field
 /// values in the `event_field_values` table. Constraint validation is
 /// performed against the category's merged schema before any write.
+///
+/// Time model encoding in the database (see also `events_table.dart`):
+/// - `range_end_ms IS NULL` → [TimePoint] event
+/// - `range_end_ms IS NOT NULL AND has_clock_time = 0` → [DayPreciseRange]
+/// - `range_end_ms IS NOT NULL AND has_clock_time = 1` → [DatetimePreciseRange]
 class EventRepositoryImpl implements EventRepository {
   /// Creates an [EventRepositoryImpl] backed by the given [AppDatabase].
   EventRepositoryImpl(this._db);
@@ -43,6 +48,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<void> save(Event event) async {
     await _validateFieldValues(event);
+    _validateTimeRange(event.occurredAt);
     AppLogger.debug('EventRepository: saving ${event.uid}');
     await _db.transaction(() async {
       await _db
@@ -51,8 +57,9 @@ class EventRepositoryImpl implements EventRepository {
             EventsCompanion(
               uid: Value(event.uid),
               categoryUid: Value(event.categoryUid),
-              occurredAtMs: Value(_timePointToMs(event.occurredAt)),
-              hasClockTime: Value(event.occurredAt.clockTime != null),
+              occurredAtMs: Value(_startMs(event.occurredAt)),
+              hasClockTime: Value(_clockTimeFlag(event.occurredAt)),
+              rangeEndMs: Value(_endMs(event.occurredAt)),
             ),
           );
       await (_db.delete(
@@ -80,42 +87,142 @@ class EventRepositoryImpl implements EventRepository {
         .asyncMap((_) => _queryDaysInMonth(month));
   }
 
+  // ── Time model helpers ────────────────────────────────────────────────────
+
+  /// Returns the start timestamp in milliseconds for [time].
+  int _startMs(EventTime time) => switch (time) {
+    TimePoint(:final clockTime, :final date) =>
+      (clockTime ?? date).millisecondsSinceEpoch,
+    DayPreciseRange(:final from) => from.millisecondsSinceEpoch,
+    DatetimePreciseRange(:final from) => from.millisecondsSinceEpoch,
+  };
+
+  /// Returns `true` when [time] carries clock-time precision.
+  bool _clockTimeFlag(EventTime time) => switch (time) {
+    TimePoint(:final clockTime) => clockTime != null,
+    DayPreciseRange() => false,
+    DatetimePreciseRange() => true,
+  };
+
+  /// Returns the end timestamp in milliseconds, or `null` for [TimePoint].
+  int? _endMs(EventTime time) => switch (time) {
+    TimePoint() => null,
+    DayPreciseRange(:final to) => to.millisecondsSinceEpoch,
+    DatetimePreciseRange(:final to) => to.millisecondsSinceEpoch,
+  };
+
+  /// Throws [EventRangeInvalidException] when the range end is before start.
+  void _validateTimeRange(EventTime time) {
+    switch (time) {
+      case DayPreciseRange(:final from, :final to):
+        if (to.isBefore(from)) {
+          throw const EventRangeInvalidException(
+            'Range end date must not be before start date',
+          );
+        }
+      case DatetimePreciseRange(:final from, :final to):
+        if (to.isBefore(from)) {
+          throw const EventRangeInvalidException(
+            'Range end datetime must not be before start datetime',
+          );
+        }
+      case TimePoint():
+        break;
+    }
+  }
+
+  /// Reconstructs an [EventTime] from a database row.
+  EventTime _toEventTime(EventRow row) {
+    final startDt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
+    if (row.rangeEndMs == null) {
+      if (row.hasClockTime) {
+        return TimePoint(
+          date: DateTime(startDt.year, startDt.month, startDt.day),
+          clockTime: startDt,
+        );
+      }
+      return TimePoint(
+        date: DateTime(startDt.year, startDt.month, startDt.day),
+      );
+    }
+    final endDt = DateTime.fromMillisecondsSinceEpoch(row.rangeEndMs!);
+    if (row.hasClockTime) {
+      return DatetimePreciseRange(from: startDt, to: endDt);
+    }
+    return DayPreciseRange(
+      from: DateTime(startDt.year, startDt.month, startDt.day),
+      to: DateTime(endDt.year, endDt.month, endDt.day),
+    );
+  }
+
+  // ── Query helpers ─────────────────────────────────────────────────────────
+
   Future<Set<DateTime>> _queryDaysInMonth(DateTime month) async {
     final startMs = DateTime(month.year, month.month).millisecondsSinceEpoch;
     final endMs = DateTime(month.year, month.month + 1).millisecondsSinceEpoch;
+
+    // Include time-point events in [startMs, endMs) and range events that
+    // overlap with this month.
     final rows =
         await (_db.select(_db.events)..where(
               (t) =>
-                  t.occurredAtMs.isBiggerOrEqualValue(startMs) &
-                  t.occurredAtMs.isSmallerThanValue(endMs),
+                  (t.rangeEndMs.isNull() &
+                      t.occurredAtMs.isBiggerOrEqualValue(startMs) &
+                      t.occurredAtMs.isSmallerThanValue(endMs)) |
+                  (t.rangeEndMs.isNotNull() &
+                      t.occurredAtMs.isSmallerThanValue(endMs) &
+                      t.rangeEndMs.isBiggerOrEqualValue(startMs)),
             ))
             .get();
+
     final days = <DateTime>{};
     for (final row in rows) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
-      days.add(DateTime(dt.year, dt.month, dt.day));
+      if (row.rangeEndMs == null) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
+        days.add(DateTime(dt.year, dt.month, dt.day));
+      } else {
+        // Expand every calendar day spanned by the range that falls in month.
+        final fromDt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
+        final toDt = DateTime.fromMillisecondsSinceEpoch(row.rangeEndMs!);
+        var current = DateTime(fromDt.year, fromDt.month, fromDt.day);
+        final lastDay = DateTime(toDt.year, toDt.month, toDt.day);
+        while (!current.isAfter(lastDay)) {
+          if (current.year == month.year && current.month == month.month) {
+            days.add(current);
+          }
+          current = DateTime(current.year, current.month, current.day + 1);
+        }
+      }
     }
     return days;
   }
 
   Future<List<Event>> _queryByDay(DateTime day) async {
-    final startMs = DateTime(
+    final dayStart = DateTime(
       day.year,
       day.month,
       day.day,
     ).millisecondsSinceEpoch;
-    final endMs = DateTime(
+    final dayEnd = DateTime(
       day.year,
       day.month,
       day.day + 1,
     ).millisecondsSinceEpoch;
+
+    // A time-point event falls on [day] when its timestamp is in [dayStart,
+    // dayEnd). A range event spans [day] when its interval overlaps the day.
     final rows =
         await (_db.select(_db.events)..where(
               (t) =>
-                  t.occurredAtMs.isBiggerOrEqualValue(startMs) &
-                  t.occurredAtMs.isSmallerThanValue(endMs),
+                  (t.rangeEndMs.isNull() &
+                      t.occurredAtMs.isBiggerOrEqualValue(dayStart) &
+                      t.occurredAtMs.isSmallerThanValue(dayEnd)) |
+                  (t.rangeEndMs.isNotNull() &
+                      t.occurredAtMs.isSmallerThanValue(dayEnd) &
+                      t.rangeEndMs.isBiggerOrEqualValue(dayStart)),
             ))
             .get();
+
     return Future.wait(rows.map(_toEvent));
   }
 
@@ -126,24 +233,10 @@ class EventRepositoryImpl implements EventRepository {
     return Event(
       uid: row.uid,
       categoryUid: row.categoryUid,
-      occurredAt: _toTimePoint(row),
+      occurredAt: _toEventTime(row),
       fieldValues: valueRows.map(_toFieldValue).toList(),
     );
   }
-
-  TimePoint _toTimePoint(EventRow row) {
-    final dt = DateTime.fromMillisecondsSinceEpoch(row.occurredAtMs);
-    if (row.hasClockTime) {
-      return TimePoint(
-        date: DateTime(dt.year, dt.month, dt.day),
-        clockTime: dt,
-      );
-    }
-    return TimePoint(date: DateTime(dt.year, dt.month, dt.day));
-  }
-
-  int _timePointToMs(TimePoint tp) =>
-      (tp.clockTime ?? tp.date).millisecondsSinceEpoch;
 
   FieldValue _toFieldValue(EventFieldValueRow row) {
     return switch (FieldType.values[row.valueTypeIndex]) {

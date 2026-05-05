@@ -11,8 +11,8 @@ import 'package:private_statistics/features/categories/domain/models/resolved_fi
 import 'package:private_statistics/features/categories/domain/models/time_model.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
+import 'package:private_statistics/features/events/domain/models/event_time.dart';
 import 'package:private_statistics/features/events/domain/models/field_value.dart';
-import 'package:private_statistics/features/events/domain/models/time_point.dart';
 import 'package:private_statistics/features/events/domain/repositories/event_repository.dart';
 import 'package:private_statistics/features/events/presentation/event_form_screen.dart';
 import 'package:private_statistics/features/events/providers/event_providers.dart';
@@ -39,11 +39,14 @@ Field _field({
 ResolvedField _resolved(Field field) =>
     ResolvedField(field: field, isInherited: false);
 
-CategoryNode _nodeWithFields(List<Field> fields) => CategoryNode(
+CategoryNode _nodeWith({
+  TimeModel timeModel = TimeModel.timePoint,
+  List<Field> fields = const [],
+}) => CategoryNode(
   category: Category(
     uid: 'cat1',
     name: 'Test',
-    timeModel: TimeModel.timePoint,
+    timeModel: timeModel,
     ownFields: fields,
   ),
   children: const [],
@@ -65,13 +68,16 @@ Widget _buildEditForm({
   ),
 );
 
-Event _event({String uid = 'e1', List<FieldValue> fieldValues = const []}) =>
-    Event(
-      uid: uid,
-      categoryUid: 'cat1',
-      occurredAt: TimePoint(date: DateTime(2026, 5, 4)),
-      fieldValues: fieldValues,
-    );
+Event _event({
+  String uid = 'e1',
+  EventTime? occurredAt,
+  List<FieldValue> fieldValues = const [],
+}) => Event(
+  uid: uid,
+  categoryUid: 'cat1',
+  occurredAt: occurredAt ?? TimePoint(date: DateTime(2026, 5, 4)),
+  fieldValues: fieldValues,
+);
 
 // ── Tests ─────────────────────────────────────────────────────────────────
 
@@ -99,7 +105,7 @@ void main() {
       _field(uid: 'f-bool', type: FieldType.boolean),
       _field(uid: 'f-enum', type: FieldType.enumeration, enumOptions: ['a']),
     ];
-    final node = _nodeWithFields(fields);
+    final node = _nodeWith(fields: fields);
 
     await tester.pumpWidget(
       _buildEditForm(
@@ -137,7 +143,7 @@ void main() {
           constraint: const FieldConstraint(min: 0, max: 10),
         ),
       ];
-      final node = _nodeWithFields(fields);
+      final node = _nodeWith(fields: fields);
 
       await tester.pumpWidget(
         _buildEditForm(
@@ -175,7 +181,7 @@ void main() {
         enumOptions: ['low', 'medium', 'high'],
       ),
     ];
-    final node = _nodeWithFields(fields);
+    final node = _nodeWith(fields: fields);
 
     await tester.pumpWidget(
       _buildEditForm(
@@ -203,7 +209,7 @@ void main() {
     tester,
   ) async {
     final fields = [_field(uid: 'f-float', type: FieldType.float)];
-    final node = _nodeWithFields(fields);
+    final node = _nodeWith(fields: fields);
 
     await tester.pumpWidget(
       _buildEditForm(
@@ -221,4 +227,96 @@ void main() {
     // The float TextField must show the value rounded to 1 decimal place
     expect(find.widgetWithText(TextField, '3.1'), findsOneWidget);
   });
+
+  // ── Range time model widget tests ─────────────────────────────────────────
+
+  testWidgets(
+    'day-precise range category shows two date buttons and no time toggle',
+    (tester) async {
+      final node = _nodeWith(timeModel: TimeModel.dayPreciseRange);
+
+      await tester.pumpWidget(
+        _buildEditForm(
+          node: node,
+          event: _event(
+            occurredAt: DayPreciseRange(
+              from: DateTime(2026, 5, 4),
+              to: DateTime(2026, 5, 6),
+            ),
+          ),
+          repo: repo,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Both date buttons are present
+      expect(find.textContaining('From:'), findsOneWidget);
+      expect(find.textContaining('To:'), findsOneWidget);
+
+      // No clock-time toggle (Set time switch)
+      expect(find.widgetWithText(SwitchListTile, 'Set time'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'datetime-precise range category shows from and to date + time buttons',
+    (tester) async {
+      final node = _nodeWith(timeModel: TimeModel.datetimePreciseRange);
+
+      await tester.pumpWidget(
+        _buildEditForm(
+          node: node,
+          event: _event(
+            occurredAt: DatetimePreciseRange(
+              from: DateTime(2026, 5, 4, 10),
+              to: DateTime(2026, 5, 6, 14, 30),
+            ),
+          ),
+          repo: repo,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Both from-date and to-date buttons are present
+      expect(find.textContaining('From:'), findsOneWidget);
+      expect(find.textContaining('To:'), findsOneWidget);
+
+      // Two time buttons present (one for from, one for to)
+      expect(find.byIcon(Icons.access_time_outlined), findsNWidgets(2));
+
+      // No clock-time toggle
+      expect(find.widgetWithText(SwitchListTile, 'Set time'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'day-precise range shows inline error when to-date is before from-date',
+    (tester) async {
+      final node = _nodeWith(timeModel: TimeModel.dayPreciseRange);
+
+      // Build a form where to < from so validation fires on Save.
+      await tester.pumpWidget(
+        _buildEditForm(
+          node: node,
+          event: _event(
+            occurredAt: DayPreciseRange(
+              from: DateTime(2026, 5, 6),
+              to: DateTime(2026, 5, 4),
+            ),
+          ),
+          repo: repo,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('End date must not be before start date'),
+        findsOneWidget,
+      );
+      verifyNever(() => repo.save(any()));
+    },
+  );
 }

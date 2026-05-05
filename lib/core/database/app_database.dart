@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +51,14 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           await m.createTable(events);
           await m.createTable(eventFieldValues);
+        }
+        if (from < 4) {
+          // Add nullable range_end_ms column for DayPreciseRange and
+          // DatetimePreciseRange events. Existing rows (time-point events)
+          // default to NULL, preserving backwards compatibility.
+          await customStatement(
+            'ALTER TABLE events ADD COLUMN range_end_ms INTEGER;',
+          );
         }
       }
     },

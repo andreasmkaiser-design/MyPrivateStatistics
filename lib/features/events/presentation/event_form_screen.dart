@@ -7,10 +7,11 @@ import 'package:private_statistics/core/logging/app_logger.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/domain/models/field_type.dart';
 import 'package:private_statistics/features/categories/domain/models/resolved_field.dart';
+import 'package:private_statistics/features/categories/domain/models/time_model.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
+import 'package:private_statistics/features/events/domain/models/event_time.dart';
 import 'package:private_statistics/features/events/domain/models/field_value.dart';
-import 'package:private_statistics/features/events/domain/models/time_point.dart';
 import 'package:private_statistics/features/events/providers/event_providers.dart';
 
 final _random = Random.secure();
@@ -23,10 +24,15 @@ String _generateUid() {
 
 enum _FormMode { createNew, edit }
 
-/// Full-screen form for creating or editing a time-point [Event].
+/// Full-screen form for creating or editing an [Event].
 ///
 /// Use [EventFormScreen.createNew] to record a new event for a given day, or
 /// [EventFormScreen.fromEvent] to edit an existing event.
+///
+/// The time input section adapts to the selected category's [TimeModel]:
+/// - [TimeModel.timePoint]: single date + optional clock time toggle
+/// - [TimeModel.dayPreciseRange]: two date pickers (from / to)
+/// - [TimeModel.datetimePreciseRange]: two date + time pickers (from / to)
 ///
 /// The form renders a dynamic field set derived from the selected category's
 /// merged schema. Constraint validation is performed client-side before the
@@ -63,9 +69,20 @@ class EventFormScreen extends ConsumerStatefulWidget {
 
 class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   CategoryNode? _category;
-  late DateTime _date;
+
+  // Shared from-date for all time models.
+  late DateTime _fromDate;
+
+  // TimePoint-only: optional clock time on the single moment.
   bool _hasClockTime = false;
-  TimeOfDay? _clockTime;
+  TimeOfDay? _fromTime;
+
+  // Range models: to-date (and optional to-time for datetime-precise).
+  DateTime? _toDate;
+  TimeOfDay? _toTime;
+
+  // Inline error shown below the time input when range order is invalid.
+  String? _dateRangeError;
 
   final Map<String, TextEditingController> _textControllers = {};
   final Map<String, bool> _boolValues = {};
@@ -79,13 +96,24 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   void initState() {
     super.initState();
     if (widget._mode == _FormMode.createNew) {
-      _date = widget._defaultDay!;
+      _fromDate = widget._defaultDay!;
     } else {
       final event = widget._existingEvent!;
-      _date = event.occurredAt.date;
-      if (event.occurredAt.clockTime != null) {
-        _hasClockTime = true;
-        _clockTime = TimeOfDay.fromDateTime(event.occurredAt.clockTime!);
+      switch (event.occurredAt) {
+        case TimePoint(:final date, :final clockTime):
+          _fromDate = date;
+          if (clockTime != null) {
+            _hasClockTime = true;
+            _fromTime = TimeOfDay.fromDateTime(clockTime);
+          }
+        case DayPreciseRange(:final from, :final to):
+          _fromDate = from;
+          _toDate = to;
+        case DatetimePreciseRange(:final from, :final to):
+          _fromDate = DateTime(from.year, from.month, from.day);
+          _fromTime = TimeOfDay.fromDateTime(from);
+          _toDate = DateTime(to.year, to.month, to.day);
+          _toTime = TimeOfDay.fromDateTime(to);
       }
       if (widget._preselectedNode != null) {
         _applyCategory(widget._preselectedNode!, event.fieldValues);
@@ -113,6 +141,12 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     _fieldErrors.clear();
 
     _category = node;
+    _dateRangeError = null;
+
+    // Seed a sensible to-date default when switching to a range category.
+    if (node.category.timeModel != TimeModel.timePoint) {
+      _toDate ??= _fromDate;
+    }
 
     final byUid = {for (final fv in existingValues) fv.fieldUid: fv};
 
@@ -164,30 +198,84 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     );
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickFromDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _fromDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
     if (picked == null || !mounted) return;
-    setState(() => _date = picked);
+    setState(() {
+      _fromDate = picked;
+      _dateRangeError = null;
+    });
   }
 
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
+  Future<void> _pickToDate() async {
+    final picked = await showDatePicker(
       context: context,
-      initialTime: _clockTime ?? TimeOfDay.now(),
+      initialDate: _toDate ?? _fromDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
     );
     if (picked == null || !mounted) return;
-    setState(() => _clockTime = picked);
+    setState(() {
+      _toDate = picked;
+      _dateRangeError = null;
+    });
+  }
+
+  Future<void> _pickFromTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _fromTime ?? TimeOfDay.now(),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _fromTime = picked);
+  }
+
+  Future<void> _pickToTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _toTime ?? TimeOfDay.now(),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _toTime = picked);
   }
 
   bool _validateFields() {
     if (_category == null) {
       setState(() => _categoryError = 'Select a category');
       return false;
+    }
+
+    // Range order validation.
+    final model = _category!.category.timeModel;
+    if (model != TimeModel.timePoint) {
+      final toDay = _toDate;
+      if (toDay == null) {
+        setState(() => _dateRangeError = 'Select an end date');
+        return false;
+      }
+      final fromDay = DateTime(_fromDate.year, _fromDate.month, _fromDate.day);
+      final toNorm = DateTime(toDay.year, toDay.month, toDay.day);
+      if (toNorm.isBefore(fromDay)) {
+        setState(
+          () => _dateRangeError = 'End date must not be before start date',
+        );
+        return false;
+      }
+      if (model == TimeModel.datetimePreciseRange && toNorm == fromDay) {
+        final fromMin = (_fromTime?.hour ?? 0) * 60 + (_fromTime?.minute ?? 0);
+        final toMin = (_toTime?.hour ?? 0) * 60 + (_toTime?.minute ?? 0);
+        if (toMin < fromMin) {
+          setState(
+            () => _dateRangeError = 'End time must not be before start time',
+          );
+          return false;
+        }
+      }
     }
 
     var valid = true;
@@ -294,29 +382,60 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
     return values;
   }
 
+  EventTime _buildEventTime() {
+    final model = _category!.category.timeModel;
+    switch (model) {
+      case TimeModel.timePoint:
+        final clockDateTime = (_hasClockTime && _fromTime != null)
+            ? DateTime(
+                _fromDate.year,
+                _fromDate.month,
+                _fromDate.day,
+                _fromTime!.hour,
+                _fromTime!.minute,
+              )
+            : null;
+        return TimePoint(
+          date: DateTime(_fromDate.year, _fromDate.month, _fromDate.day),
+          clockTime: clockDateTime,
+        );
+      case TimeModel.dayPreciseRange:
+        final to = _toDate!;
+        return DayPreciseRange(
+          from: DateTime(_fromDate.year, _fromDate.month, _fromDate.day),
+          to: DateTime(to.year, to.month, to.day),
+        );
+      case TimeModel.datetimePreciseRange:
+        final to = _toDate!;
+        return DatetimePreciseRange(
+          from: DateTime(
+            _fromDate.year,
+            _fromDate.month,
+            _fromDate.day,
+            _fromTime?.hour ?? 0,
+            _fromTime?.minute ?? 0,
+          ),
+          to: DateTime(
+            to.year,
+            to.month,
+            to.day,
+            _toTime?.hour ?? 0,
+            _toTime?.minute ?? 0,
+          ),
+        );
+    }
+  }
+
   Future<void> _save() async {
     if (!_validateFields()) return;
 
     setState(() => _isSaving = true);
     try {
       final uid = widget._existingEvent?.uid ?? _generateUid();
-      final clockDateTime = (_hasClockTime && _clockTime != null)
-          ? DateTime(
-              _date.year,
-              _date.month,
-              _date.day,
-              _clockTime!.hour,
-              _clockTime!.minute,
-            )
-          : null;
-
       final event = Event(
         uid: uid,
         categoryUid: _category!.category.uid,
-        occurredAt: TimePoint(
-          date: DateTime(_date.year, _date.month, _date.day),
-          clockTime: clockDateTime,
-        ),
+        occurredAt: _buildEventTime(),
         fieldValues: _buildFieldValues(),
       );
 
@@ -375,6 +494,7 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget._mode == _FormMode.edit;
+    final model = _category?.category.timeModel ?? TimeModel.timePoint;
 
     return Scaffold(
       appBar: AppBar(
@@ -399,17 +519,23 @@ class _EventFormScreenState extends ConsumerState<EventFormScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Date / time
-            _DateTimeTile(
-              date: _date,
+            // Time input — adapts to the category's time model
+            _TimeInputSection(
+              model: model,
+              fromDate: _fromDate,
+              toDate: _toDate,
               hasClockTime: _hasClockTime,
-              clockTime: _clockTime,
-              onPickDate: _pickDate,
+              fromTime: _fromTime,
+              toTime: _toTime,
+              dateRangeError: _dateRangeError,
+              onPickFromDate: _pickFromDate,
+              onPickToDate: _pickToDate,
               onToggleClockTime: (enabled) => setState(() {
                 _hasClockTime = enabled;
-                if (!enabled) _clockTime = null;
+                if (!enabled) _fromTime = null;
               }),
-              onPickTime: _pickTime,
+              onPickFromTime: _pickFromTime,
+              onPickToTime: _pickToTime,
             ),
 
             // Dynamic fields
@@ -494,8 +620,72 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-class _DateTimeTile extends StatelessWidget {
-  const _DateTimeTile({
+/// Renders the time input section appropriate for [model].
+class _TimeInputSection extends StatelessWidget {
+  const _TimeInputSection({
+    required this.model,
+    required this.fromDate,
+    required this.toDate,
+    required this.hasClockTime,
+    required this.fromTime,
+    required this.toTime,
+    required this.dateRangeError,
+    required this.onPickFromDate,
+    required this.onPickToDate,
+    required this.onToggleClockTime,
+    required this.onPickFromTime,
+    required this.onPickToTime,
+  });
+
+  final TimeModel model;
+  final DateTime fromDate;
+  final DateTime? toDate;
+  final bool hasClockTime;
+  final TimeOfDay? fromTime;
+  final TimeOfDay? toTime;
+  final String? dateRangeError;
+  final VoidCallback onPickFromDate;
+  final VoidCallback onPickToDate;
+  final ValueChanged<bool> onToggleClockTime;
+  final VoidCallback onPickFromTime;
+  final VoidCallback onPickToTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (model) {
+      TimeModel.timePoint => _TimePointInput(
+        date: fromDate,
+        hasClockTime: hasClockTime,
+        clockTime: fromTime,
+        onPickDate: onPickFromDate,
+        onToggleClockTime: onToggleClockTime,
+        onPickTime: onPickFromTime,
+      ),
+      TimeModel.dayPreciseRange => _DayRangeInput(
+        fromDate: fromDate,
+        toDate: toDate,
+        error: dateRangeError,
+        onPickFrom: onPickFromDate,
+        onPickTo: onPickToDate,
+      ),
+      TimeModel.datetimePreciseRange => _DatetimeRangeInput(
+        fromDate: fromDate,
+        fromTime: fromTime,
+        toDate: toDate,
+        toTime: toTime,
+        error: dateRangeError,
+        onPickFromDate: onPickFromDate,
+        onPickFromTime: onPickFromTime,
+        onPickToDate: onPickToDate,
+        onPickToTime: onPickToTime,
+      ),
+    };
+  }
+}
+
+/// Single date + optional clock-time toggle (time-point events).
+class _TimePointInput extends StatelessWidget {
+  const _TimePointInput({
     required this.date,
     required this.hasClockTime,
     required this.clockTime,
@@ -536,6 +726,154 @@ class _DateTimeTile extends StatelessWidget {
               clockTime != null ? clockTime!.format(context) : 'Pick time',
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// Two date pickers for a day-precise time range.
+class _DayRangeInput extends StatelessWidget {
+  const _DayRangeInput({
+    required this.fromDate,
+    required this.toDate,
+    required this.error,
+    required this.onPickFrom,
+    required this.onPickTo,
+  });
+
+  final DateTime fromDate;
+  final DateTime? toDate;
+  final String? error;
+  final VoidCallback onPickFrom;
+  final VoidCallback onPickTo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onPickFrom,
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text('From: ${DateFormat.yMMMd().format(fromDate)}'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onPickTo,
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text(
+                  toDate != null
+                      ? 'To: ${DateFormat.yMMMd().format(toDate!)}'
+                      : 'To: pick date',
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (error != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            error!,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Two date + time pickers for a datetime-precise time range.
+class _DatetimeRangeInput extends StatelessWidget {
+  const _DatetimeRangeInput({
+    required this.fromDate,
+    required this.fromTime,
+    required this.toDate,
+    required this.toTime,
+    required this.error,
+    required this.onPickFromDate,
+    required this.onPickFromTime,
+    required this.onPickToDate,
+    required this.onPickToTime,
+  });
+
+  final DateTime fromDate;
+  final TimeOfDay? fromTime;
+  final DateTime? toDate;
+  final TimeOfDay? toTime;
+  final String? error;
+  final VoidCallback onPickFromDate;
+  final VoidCallback onPickFromTime;
+  final VoidCallback onPickToDate;
+  final VoidCallback onPickToTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onPickFromDate,
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text('From: ${DateFormat.yMMMd().format(fromDate)}'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: onPickFromTime,
+              icon: const Icon(Icons.access_time_outlined),
+              label: Text(
+                fromTime != null ? fromTime!.format(context) : 'Time',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onPickToDate,
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text(
+                  toDate != null
+                      ? 'To: ${DateFormat.yMMMd().format(toDate!)}'
+                      : 'To: pick date',
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: onPickToTime,
+              icon: const Icon(Icons.access_time_outlined),
+              label: Text(toTime != null ? toTime!.format(context) : 'Time'),
+            ),
+          ],
+        ),
+        if (error != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            error!,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ],
     );
   }
