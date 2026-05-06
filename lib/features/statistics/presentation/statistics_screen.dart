@@ -5,15 +5,20 @@ import 'package:private_statistics/features/categories/domain/models/category_no
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/statistics/domain/models/analysis_window.dart';
 import 'package:private_statistics/features/statistics/domain/models/co_occurrence_result.dart';
+import 'package:private_statistics/features/statistics/domain/models/temporal_proximity_result.dart';
+import 'package:private_statistics/features/statistics/domain/models/time_window.dart';
 import 'package:private_statistics/features/statistics/presentation/widgets/co_occurrence_bar_chart.dart';
 import 'package:private_statistics/features/statistics/presentation/widgets/kpi_card.dart';
+import 'package:private_statistics/features/statistics/presentation/widgets/temporal_proximity_kpi_card.dart';
+import 'package:private_statistics/features/statistics/presentation/widgets/time_window_selector.dart';
 import 'package:private_statistics/features/statistics/providers/statistics_providers.dart';
 
-/// The Statistics tab — source category selector, analysis window picker, and
-/// ranked Co-Occurrence results (KPI cards + bar chart).
+/// The Statistics tab — source category selector, analysis window picker,
+/// Co-Occurrence results, time window picker, and Temporal Proximity results.
 ///
-/// Computation is triggered on-demand whenever the source category or window
-/// changes (ADR-0009). Results use the Jaccard index (ADR-0017).
+/// Computation is triggered on-demand whenever the source category, analysis
+/// window, or time window changes (ADR-0009). Co-Occurrence uses the Jaccard
+/// index; Temporal Proximity uses mode A (ADR-0017).
 class StatisticsScreen extends ConsumerWidget {
   /// Creates the [StatisticsScreen].
   const StatisticsScreen({super.key});
@@ -23,7 +28,9 @@ class StatisticsScreen extends ConsumerWidget {
     final treeAsync = ref.watch(categoryTreeProvider);
     final sourceCategoryUid = ref.watch(statisticsSourceCategoryProvider);
     final window = ref.watch(statisticsAnalysisWindowProvider);
-    final resultsAsync = ref.watch(coOccurrenceResultsProvider);
+    final timeWindow = ref.watch(statisticsTimeWindowProvider);
+    final coOccurrenceAsync = ref.watch(coOccurrenceResultsProvider);
+    final proximityAsync = ref.watch(temporalProximityResultsProvider);
 
     return Scaffold(
       body: treeAsync.when(
@@ -101,11 +108,19 @@ class StatisticsScreen extends ConsumerWidget {
                     child: Text('Select a category to see correlations.'),
                   ),
                 )
-              else
-                _ResultsSliver(
-                  resultsAsync: resultsAsync,
+              else ...[
+                _CoOccurrenceSliver(
+                  resultsAsync: coOccurrenceAsync,
                   sourceName: sourceName ?? '',
                 ),
+                _ProximitySliver(
+                  resultsAsync: proximityAsync,
+                  sourceName: sourceName ?? '',
+                  timeWindow: timeWindow,
+                  onTimeWindowChanged: (w) =>
+                      ref.read(statisticsTimeWindowProvider.notifier).state = w,
+                ),
+              ],
             ],
           );
         },
@@ -150,8 +165,11 @@ class _WindowPicker extends StatelessWidget {
   }
 }
 
-class _ResultsSliver extends StatelessWidget {
-  const _ResultsSliver({required this.resultsAsync, required this.sourceName});
+class _CoOccurrenceSliver extends StatelessWidget {
+  const _CoOccurrenceSliver({
+    required this.resultsAsync,
+    required this.sourceName,
+  });
 
   final AsyncValue<List<CoOccurrenceResult>> resultsAsync;
   final String sourceName;
@@ -159,20 +177,36 @@ class _ResultsSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return resultsAsync.when(
-      loading: () => const SliverFillRemaining(
-        child: Center(child: CircularProgressIndicator()),
+      loading: () => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
       ),
-      error: (_, __) => const SliverFillRemaining(
-        child: Center(child: Text('Failed to compute statistics.')),
+      error: (_, __) => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Failed to compute Co-Occurrence statistics.'),
+        ),
       ),
       data: (results) {
         if (results.isEmpty) {
-          return const SliverFillRemaining(
-            child: Center(child: Text('No co-occurrence data in this window.')),
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text('No co-occurrence data in this window.'),
+            ),
           );
         }
         return SliverList(
           delegate: SliverChildListDelegate([
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                'Co-Occurrence',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: SizedBox(
@@ -189,6 +223,78 @@ class _ResultsSliver extends StatelessWidget {
                 child: KpiCard(sourceCategoryName: sourceName, result: r),
               ),
             ),
+          ]),
+        );
+      },
+    );
+  }
+}
+
+class _ProximitySliver extends StatelessWidget {
+  const _ProximitySliver({
+    required this.resultsAsync,
+    required this.sourceName,
+    required this.timeWindow,
+    required this.onTimeWindowChanged,
+  });
+
+  final AsyncValue<List<TemporalProximityResult>> resultsAsync;
+  final String sourceName;
+  final TimeWindow timeWindow;
+  final ValueChanged<TimeWindow> onTimeWindowChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return resultsAsync.when(
+      loading: () => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, __) => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Failed to compute Temporal Proximity statistics.'),
+        ),
+      ),
+      data: (results) {
+        return SliverList(
+          delegate: SliverChildListDelegate([
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Temporal Proximity',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TimeWindowSelector(
+                selected: timeWindow,
+                options: statisticsTimeWindowOptions,
+                onChanged: onTimeWindowChanged,
+              ),
+            ),
+            if (results.isEmpty)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Text('No temporal proximity data in this window.'),
+              )
+            else
+              ...results.map(
+                (r) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: TemporalProximityKpiCard(
+                    sourceCategoryName: sourceName,
+                    result: r,
+                    timeWindowLabel: timeWindow.label,
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
           ]),
         );

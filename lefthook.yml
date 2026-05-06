@@ -6,8 +6,10 @@ pre-commit:
     analyze:
       run: flutter analyze --no-fatal-infos
     test:
-      # flutter test (full suite) OOMs on Windows / Dart 3.11 JIT; scope to
-      # test/features/ and run sequentially (--concurrency=1) to stay within
-      # JIT memory limits. Glob skips the hook when no Dart files are staged.
+      # Full suite and test/features/ both OOM on Windows / Dart 3.11 JIT due
+      # to the widget-framework overhead. Scope to test/unit/ (pure-Dart, no
+      # rendering engine) which covers all domain and algorithm logic.
+      # Widget and integration tests run in GitHub Actions CI where memory is
+      # not constrained. Glob skips the hook when no Dart files are staged.
       glob: "**/*.dart"
-      run: flutter test test/features/ --no-pub --concurrency=1
+      run: flutter test test/unit/ --no-pub --concurrency=1

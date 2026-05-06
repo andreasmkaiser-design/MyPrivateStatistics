@@ -2,8 +2,8 @@
 
 ## Current
 
-- **Issue:** #6 (Statistics — Co-Occurrence + KPI Cards + Bar Chart)
-- **Branch:** feature/issue-6-statistics-co-occurrence
+- **Issue:** #7 (Statistics — Temporal Proximity)
+- **Branch:** feature/issue-7-statistics-temporal-proximity
 - **Started:** 2026-05-05
 - **Status:** Implementation complete — awaiting user review before commit
 - **Resume from:** Review changed files, commit, open PR, update Completed table
@@ -18,6 +18,7 @@
 | #15 | Event Data Layer | feature/issue-15-event-data-layer | 2026-05-04 |
 | #16 | Calendar UI + Event Creation Flow | feature/issue-16-calendar-ui | 2026-05-05 |
 | #5 | Event Capture — Time Ranges | feature/issue-5-time-ranges | 2026-05-05 |
+| #6 | Statistics — Co-Occurrence + KPI + Bar Chart | feature/issue-6-statistics-co-occurrence | 2026-05-05 |
 
 ## Pending (dependency order)
 
