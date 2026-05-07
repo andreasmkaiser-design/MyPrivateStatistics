@@ -99,6 +99,7 @@ class CategoryFormScreen extends ConsumerStatefulWidget {
 
 class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   late _FormData _data;
+  late TextEditingController _nameController;
   String? _nameError;
   bool _isSaving = false;
 
@@ -140,6 +141,13 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
               .toList(),
         );
     }
+    _nameController = TextEditingController(text: _data.name);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   String get _title {
@@ -244,7 +252,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
               ),
               textCapitalization: TextCapitalization.sentences,
               onChanged: _setName,
-              controller: TextEditingController(text: _data.name),
+              controller: _nameController,
             ),
             const SizedBox(height: 16),
 

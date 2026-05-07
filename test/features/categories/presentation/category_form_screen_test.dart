@@ -177,4 +177,29 @@ void main() {
 
     expect(find.text('Edit category'), findsOneWidget);
   });
+
+  testWidgets(
+    'name field controller is the same instance across setState rebuilds',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildForm(const CategoryFormScreen.createRoot(), repo),
+      );
+      await tester.pumpAndSettle();
+
+      // Capture controller before a rebuild-triggering keystroke
+      final controllerBefore = tester
+          .widget<TextField>(find.byType(TextField).first)
+          .controller;
+
+      // Enter text — triggers onChanged → setState → rebuild
+      await tester.enterText(find.byType(TextField).first, 'Running');
+      await tester.pump();
+
+      // Controller must be the same object (not recreated on rebuild)
+      final controllerAfter = tester
+          .widget<TextField>(find.byType(TextField).first)
+          .controller;
+      expect(controllerAfter, same(controllerBefore));
+    },
+  );
 }
