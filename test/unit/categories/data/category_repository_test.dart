@@ -228,4 +228,45 @@ void main() {
       );
     },
   );
+
+  // ── watchTree reactivity ─────────────────────────────────────────────────
+
+  test('watchTree re-emits after save()', () async {
+    // Drain the initial empty-tree emission so the subscription's first query
+    // completes before we write. Without this, the initial query and the
+    // change notification race and skip(1) may consume the change emission.
+    expect(await repo.watchTree().first, isEmpty);
+
+    // Subscribe for the second emission, then write.
+    final secondEmission = repo.watchTree().skip(1).first;
+    await repo.save(makeCategory(uid: 'r1', name: 'Running'));
+
+    final nodes = await secondEmission;
+    expect(nodes, hasLength(1));
+    expect(nodes.first.category.uid, equals('r1'));
+  });
+
+  test('watchTree re-emits after rename()', () async {
+    await repo.save(makeCategory(uid: 'r1', name: 'Running'));
+
+    // Subscribe after the initial save; skip the current-state emission.
+    final secondEmission = repo.watchTree().skip(1).first;
+
+    await repo.rename('r1', 'Yoga');
+
+    final nodes = await secondEmission;
+    expect(nodes.first.category.name, equals('Yoga'));
+  });
+
+  test('watchTree re-emits after delete()', () async {
+    await repo.save(makeCategory(uid: 'r1', name: 'Running'));
+
+    // Subscribe after the initial save; skip the current-state emission.
+    final secondEmission = repo.watchTree().skip(1).first;
+
+    await repo.delete('r1');
+
+    final nodes = await secondEmission;
+    expect(nodes, isEmpty);
+  });
 }

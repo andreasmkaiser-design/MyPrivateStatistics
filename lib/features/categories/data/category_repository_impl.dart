@@ -26,10 +26,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Stream<List<CategoryNode>> watchTree() {
-    return _db
-        .customSelect('SELECT 1', readsFrom: {_db.categories, _db.fields})
-        .watch()
-        .asyncMap((_) => _buildTree());
+    return _db.select(_db.categories).watch().asyncMap((_) => _buildTree());
   }
 
   @override
