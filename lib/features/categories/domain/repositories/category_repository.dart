@@ -23,9 +23,14 @@ abstract class CategoryRepository {
   /// All own fields for this category are replaced with those in
   /// [Category.ownFields]. Throws [CategoryDepthLimitExceededException] if
   /// placing [category] in the hierarchy would exceed the maximum depth.
+  /// Throws [DuplicateCategoryNameException] if a sibling with the same name
+  /// (case-insensitive) already exists.
   Future<void> save(Category category);
 
   /// Renames the category with [uid] to [newName].
+  ///
+  /// Throws [DuplicateCategoryNameException] if a sibling with the same name
+  /// (case-insensitive) already exists.
   Future<void> rename(String uid, String newName);
 
   /// Deletes the category with [uid].

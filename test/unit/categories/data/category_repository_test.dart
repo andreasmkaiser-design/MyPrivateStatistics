@@ -269,4 +269,84 @@ void main() {
     final nodes = await secondEmission;
     expect(nodes, isEmpty);
   });
+
+  // ── Uniqueness guard ──────────────────────────────────────────────────────
+
+  test('save() throws DuplicateCategoryNameException for duplicate root name '
+      '(case-insensitive)', () async {
+    await repo.save(makeCategory(uid: 'r1', name: 'Sport'));
+
+    await expectLater(
+      repo.save(makeCategory(uid: 'r2', name: 'sport')),
+      throwsA(isA<DuplicateCategoryNameException>()),
+    );
+  });
+
+  test('save() throws DuplicateCategoryNameException for duplicate subcategory '
+      'name under same parent', () async {
+    await repo.save(makeCategory(uid: 'parent', name: 'Parent'));
+    await repo.save(
+      makeCategory(uid: 'c1', name: 'Running', parentUid: 'parent'),
+    );
+
+    await expectLater(
+      repo.save(makeCategory(uid: 'c2', name: 'RUNNING', parentUid: 'parent')),
+      throwsA(isA<DuplicateCategoryNameException>()),
+    );
+  });
+
+  test(
+    'save() succeeds when same name exists under a different parent',
+    () async {
+      await repo.save(makeCategory(uid: 'p1', name: 'Sport'));
+      await repo.save(makeCategory(uid: 'p2', name: 'Health'));
+      await repo.save(
+        makeCategory(uid: 'c1', name: 'Running', parentUid: 'p1'),
+      );
+
+      await expectLater(
+        repo.save(makeCategory(uid: 'c2', name: 'Running', parentUid: 'p2')),
+        completes,
+      );
+    },
+  );
+
+  test('save() succeeds when re-saving an existing category with its current '
+      'name (self-exclusion)', () async {
+    await repo.save(makeCategory(uid: 'r1', name: 'Sport'));
+
+    await expectLater(
+      repo.save(makeCategory(uid: 'r1', name: 'Sport')),
+      completes,
+    );
+  });
+
+  test('rename() throws DuplicateCategoryNameException when new name conflicts '
+      'with a sibling', () async {
+    await repo.save(makeCategory(uid: 'parent', name: 'Parent'));
+    await repo.save(makeCategory(uid: 'c1', name: 'Yoga', parentUid: 'parent'));
+    await repo.save(
+      makeCategory(uid: 'c2', name: 'Running', parentUid: 'parent'),
+    );
+
+    await expectLater(
+      repo.rename('c2', 'yoga'),
+      throwsA(isA<DuplicateCategoryNameException>()),
+    );
+  });
+
+  test(
+    'rename() succeeds when the new name is unique among siblings',
+    () async {
+      await repo.save(makeCategory(uid: 'parent', name: 'Parent'));
+      await repo.save(
+        makeCategory(uid: 'c1', name: 'Yoga', parentUid: 'parent'),
+      );
+      await repo.save(
+        makeCategory(uid: 'c2', name: 'Running', parentUid: 'parent'),
+      );
+
+      await expectLater(repo.rename('c2', 'Cycling'), completes);
+    },
+  );
 }

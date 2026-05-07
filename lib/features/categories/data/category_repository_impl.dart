@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:private_statistics/core/database/app_database.dart';
 import 'package:private_statistics/core/logging/app_logger.dart';
+import 'package:private_statistics/features/categories/domain/exceptions.dart';
 import 'package:private_statistics/features/categories/domain/models/category.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/domain/models/field.dart';
@@ -47,10 +48,18 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Future<void> save(Category category) async {
+    final allCats = await _allCategoriesMap();
+
     if (category.parentUid != null) {
-      final allCats = await _allCategoriesMap();
       _resolver.validateDepth(category, allCats);
     }
+
+    _guardSiblingUniqueness(
+      uid: category.uid,
+      parentUid: category.parentUid,
+      name: category.name,
+      allCats: allCats,
+    );
 
     AppLogger.debug('CategoryRepository: saving ${category.uid}');
 
@@ -97,9 +106,43 @@ class CategoryRepositoryImpl implements CategoryRepository {
   @override
   Future<void> rename(String uid, String newName) async {
     AppLogger.debug('CategoryRepository: renaming $uid to $newName');
+
+    final allCats = await _allCategoriesMap();
+    final target = allCats[uid];
+    if (target != null) {
+      _guardSiblingUniqueness(
+        uid: uid,
+        parentUid: target.parentUid,
+        name: newName,
+        allCats: allCats,
+      );
+    }
+
     await (_db.update(_db.categories)..where((t) => t.uid.equals(uid))).write(
       CategoriesCompanion(name: Value(newName)),
     );
+  }
+
+  /// Throws [DuplicateCategoryNameException] if any sibling of [uid] (i.e. a
+  /// category sharing the same [parentUid]) already has [name]
+  /// (case-insensitive). The category identified by [uid] is excluded so that
+  /// re-saving or renaming to the current name succeeds without error.
+  void _guardSiblingUniqueness({
+    required String uid,
+    required String? parentUid,
+    required String name,
+    required Map<String, Category> allCats,
+  }) {
+    final nameLower = name.toLowerCase();
+    final hasDuplicate = allCats.values.any(
+      (c) =>
+          c.parentUid == parentUid &&
+          c.uid != uid &&
+          c.name.toLowerCase() == nameLower,
+    );
+    if (hasDuplicate) {
+      throw DuplicateCategoryNameException(name);
+    }
   }
 
   @override

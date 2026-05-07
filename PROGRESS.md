@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #7 (Statistics — Temporal Proximity)
-- **Branch:** feature/issue-7-statistics-temporal-proximity
-- **Started:** 2026-05-05
-- **Status:** Implementation complete — awaiting user review before commit
-- **Resume from:** Review changed files, commit, open PR, update Completed table
+- **Issue:** #22 (impl: Repository uniqueness guard for sibling names)
+- **Branch:** feature/issue-22-repository-uniqueness-guard
+- **Started:** —
+- **Status:** Not started
+- **Resume from:** Create branch → RED tests for save/rename duplicate paths → GREEN implementation → commit
 
 ## Completed
 
@@ -19,41 +19,34 @@
 | #16 | Calendar UI + Event Creation Flow | feature/issue-16-calendar-ui | 2026-05-05 |
 | #5 | Event Capture — Time Ranges | feature/issue-5-time-ranges | 2026-05-05 |
 | #6 | Statistics — Co-Occurrence + KPI + Bar Chart | feature/issue-6-statistics-co-occurrence | 2026-05-05 |
+| #7 | Statistics — Temporal Proximity | feature/issue-7-statistics-temporal-proximity | 2026-05-05 |
+| #26 | fix: TextEditingController lifecycle in CategoryFormScreen | feature/issue-26-fix-text-editing-controller | 2026-05-07 |
+| #27 | fix: Category tree stream not reactive after writes | feature/issue-27-fix-watchTree-stream | 2026-05-07 |
 
 ## Pending (dependency order)
 
 | Phase | Issue | Title | Blocked by | ADRs to load |
 |---|---|---|---|---|
-| 1 | #2 | Project Scaffold + CI/CD | — | 0005, 0012, 0013 |
-| 2 | #13 | Category Data Layer | #2 | 0003, 0006, 0007, 0012, 0014, 0015 |
-| 2 | #9 | Health Connect Integration | #2 | 0008, 0015, 0016, 0018 |
-| 2 | #11 | Backup & Restore | #2 | 0014, 0015, 0016 |
-| 3 | #14 | Category UI | #13 | 0004, 0005, 0012, 0013 |
-| 3 | #15 | Event Data Layer | #13 | 0003, 0006, 0007, 0012, 0014, 0015 |
-| 4 | #16 | Calendar UI + Event Creation Flow | #14, #15 | 0004, 0005, 0012, 0013 |
-| 4 | #10 | JSON Template Export / Import | #14 | 0010, 0012, 0014 |
-| 5 | #5 | Event Capture — Time Ranges | #16 | 0003, 0007, 0012 |
-| 5 | #6 | Statistics — Co-Occurrence + KPI + Bar Chart | #16 | 0009, 0012, 0017 |
-| 5 | #12 | Onboarding | #14, #9 | 0004, 0005, 0012 |
-| 6 | #7 | Statistics — Temporal Proximity | #6 | 0009, 0017 |
-| 6 | #8 | Statistics — Calendar Visualisation | #6 | 0005, 0012 |
+| 2 | #9 | Health Connect Integration | — | 0008, 0015, 0016, 0018 |
+| 2 | #11 | Backup & Restore | — | 0014, 0015, 0016 |
+| 4 | #10 | JSON Template Export / Import | — | 0010, 0012, 0014 |
+| 5 | #12 | Onboarding | #9 | 0004, 0005, 0012 |
+| 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
+| 7 | #22 | Repository uniqueness guard for sibling names | — | 0003, 0006, 0007, 0014, 0015 |
+| 8 | #23 | Inline sibling-name validation (form + rename dialog) | #22 | 0004, 0005, 0012, 0013, 0014 |
+| 8 | #24 | Inline subcategory chip list in CategoryFormScreen | #22 | 0004, 0005, 0012, 0013 |
 
 ## Blocked
 
 | Issue | Title | Waiting for |
 |---|---|---|
-| #9 | Health Connect Integration | #2 |
-| #11 | Backup & Restore | #2 |
-| #15 | Event Data Layer | #13 |
-| #10 | JSON Template Export / Import | #14 |
-| #5 | Event Capture — Time Ranges | #16 |
-| #6 | Statistics — Co-Occurrence + KPI + Bar Chart | #16 |
-| #12 | Onboarding | #14, #9 |
-| #7 | Statistics — Temporal Proximity | #6 |
-| #8 | Statistics — Calendar Visualisation | #6 |
+| #12 | Onboarding | #9 |
+| #23 | Inline sibling-name validation | #22 |
+| #24 | Inline subcategory chip list | #22 |
 
 ## Notes
 
 - Issues use `/design-an-interface` before `/tdd`: #13, #15, #9, #6
 - New ADR written during implementation → add to ADRs column for all affected pending issues
 - Context > 70%: finish current red-green-refactor cycle → commit → update "Resume from" → new session
+- Parent PRDs: #20 (Category name uniqueness → impl: #22, #23), #21 (Inline subcategory creation → impl: #24), #25 (Text input + reactive tree bugs → impl: #26 ✓, #27)
