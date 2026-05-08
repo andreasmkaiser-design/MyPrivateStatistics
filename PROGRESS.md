@@ -35,7 +35,7 @@
 | 4 | #10 | JSON Template Export / Import | — | 0010, 0012, 0014 |
 | 5 | #12 | Onboarding | #9 | 0004, 0005, 0012 |
 | 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
-| 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013 |
+| 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013, 0019 |
 
 ## Blocked
 
