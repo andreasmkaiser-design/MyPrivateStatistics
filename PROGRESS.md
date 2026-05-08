@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #22 (impl: Repository uniqueness guard for sibling names)
-- **Branch:** feature/issue-22-repository-uniqueness-guard
+- **Issue:** #23 (impl: Inline sibling-name validation in CategoryFormScreen and RenameCategoryDialog)
+- **Branch:** feature/issue-23-inline-name-validation
 - **Started:** —
 - **Status:** Not started
-- **Resume from:** Create branch → RED tests for save/rename duplicate paths → GREEN implementation → commit
+- **Resume from:** Create branch → fix RenameCategoryDialog (StatefulWidget + sibling set) → fix CategoryFormScreen (live validation against tree) → lint → pause for review
 
 ## Completed
 
@@ -22,6 +22,7 @@
 | #7 | Statistics — Temporal Proximity | feature/issue-7-statistics-temporal-proximity | 2026-05-05 |
 | #26 | fix: TextEditingController lifecycle in CategoryFormScreen | feature/issue-26-fix-text-editing-controller | 2026-05-07 |
 | #27 | fix: Category tree stream not reactive after writes | feature/issue-27-fix-watchTree-stream | 2026-05-07 |
+| #22 | Repository uniqueness guard for sibling names | feature/issue-22-repository-uniqueness-guard | 2026-05-07 |
 
 ## Pending (dependency order)
 

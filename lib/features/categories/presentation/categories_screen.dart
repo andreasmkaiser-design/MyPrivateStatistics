@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:private_statistics/core/logging/app_logger.dart';
+import 'package:private_statistics/features/categories/domain/exceptions.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/presentation/category_form_screen.dart';
 import 'package:private_statistics/features/categories/presentation/category_tree_tile.dart';
@@ -137,31 +138,43 @@ class CategoriesScreen extends ConsumerWidget {
     }
   }
 
+  /// Returns lower-cased names of all siblings of [node] (excluding itself).
+  Set<String> _siblingNamesFor(List<CategoryNode> roots, CategoryNode node) {
+    final uid = node.category.uid;
+    if (node.category.parentUid == null) {
+      return roots
+          .where((n) => n.category.uid != uid)
+          .map((n) => n.category.name.toLowerCase())
+          .toSet();
+    }
+    final parent = _findParent(roots, node);
+    return parent?.children
+            .where((n) => n.category.uid != uid)
+            .map((n) => n.category.name.toLowerCase())
+            .toSet() ??
+        {};
+  }
+
   Future<void> _showRenameDialog(
     BuildContext context,
     WidgetRef ref,
     CategoryNode node,
   ) async {
-    final controller = TextEditingController(text: node.category.name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (_) => _RenameCategoryDialog(controller: controller),
-    );
-    if (newName == null || newName.trim().isEmpty) return;
-    if (!context.mounted) return;
-
+    final roots = ref.read(categoryTreeProvider).valueOrNull ?? [];
+    final siblingNames = _siblingNamesFor(roots, node);
     final repo = ref.read(categoryRepositoryProvider);
-    try {
-      await repo.rename(node.category.uid, newName.trim());
-      AppLogger.info('Category renamed: ${node.category.uid}');
-    } on Object catch (e, st) {
-      AppLogger.error('Failed to rename category', e, st);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to rename category')),
-        );
-      }
-    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _RenameCategoryDialog(
+        initialName: node.category.name,
+        siblingNames: siblingNames,
+        onRename: (newName) async {
+          await repo.rename(node.category.uid, newName);
+          AppLogger.info('Category renamed: ${node.category.uid}');
+        },
+      ),
+    );
   }
 }
 
@@ -224,20 +237,96 @@ class _DeleteCategoryDialog extends StatelessWidget {
   }
 }
 
-class _RenameCategoryDialog extends StatelessWidget {
-  const _RenameCategoryDialog({required this.controller});
+class _RenameCategoryDialog extends StatefulWidget {
+  const _RenameCategoryDialog({
+    required this.initialName,
+    required this.siblingNames,
+    required this.onRename,
+  });
 
-  final TextEditingController controller;
+  /// The current name of the category being renamed.
+  final String initialName;
+
+  /// Lower-cased names of all siblings (self excluded).
+  final Set<String> siblingNames;
+
+  /// Called with the trimmed new name when the user confirms.
+  ///
+  /// Throws [DuplicateCategoryNameException] if the name is already taken;
+  /// throws other exceptions for infrastructure failures.
+  final Future<void> Function(String) onRename;
+
+  @override
+  State<_RenameCategoryDialog> createState() => _RenameCategoryDialogState();
+}
+
+class _RenameCategoryDialogState extends State<_RenameCategoryDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+  bool _isRenaming = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChange(String value) {
+    setState(() {
+      final trimmed = value.trim();
+      if (trimmed.isNotEmpty &&
+          widget.siblingNames.contains(trimmed.toLowerCase())) {
+        _error = 'Name already used by a sibling category';
+      } else {
+        _error = null;
+      }
+    });
+  }
+
+  Future<void> _submit() async {
+    final trimmed = _controller.text.trim();
+    if (trimmed.isEmpty) return;
+    setState(() => _isRenaming = true);
+    try {
+      await widget.onRename(trimmed);
+      if (mounted) Navigator.of(context).pop();
+    } on DuplicateCategoryNameException catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Name already used by a sibling category';
+          _isRenaming = false;
+        });
+      }
+    } on Object catch (e, st) {
+      AppLogger.error('Failed to rename category', e, st);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to rename category')),
+        );
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  bool get _canRename =>
+      _error == null && _controller.text.trim().isNotEmpty && !_isRenaming;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Rename category'),
       content: TextField(
-        controller: controller,
+        controller: _controller,
         autofocus: true,
-        decoration: const InputDecoration(labelText: 'Name'),
+        decoration: InputDecoration(labelText: 'Name', errorText: _error),
         textCapitalization: TextCapitalization.sentences,
+        onChanged: _onChange,
       ),
       actions: [
         TextButton(
@@ -245,7 +334,7 @@ class _RenameCategoryDialog extends StatelessWidget {
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(controller.text),
+          onPressed: _canRename ? _submit : null,
           child: const Text('Rename'),
         ),
       ],

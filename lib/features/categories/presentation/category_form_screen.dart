@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:private_statistics/core/logging/app_logger.dart';
+import 'package:private_statistics/features/categories/domain/exceptions.dart';
 import 'package:private_statistics/features/categories/domain/models/category.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/domain/models/resolved_field.dart';
@@ -158,10 +159,55 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     };
   }
 
-  void _setName(String value) => setState(() {
+  void _setName(String value, Set<String> siblingNames) => setState(() {
     _data = _data.copyWith(name: value);
-    _nameError = null;
+    final trimmed = value.trim();
+    if (trimmed.isNotEmpty && siblingNames.contains(trimmed.toLowerCase())) {
+      _nameError = 'Name already used by a sibling category';
+    } else {
+      _nameError = null;
+    }
   });
+
+  /// Returns the lower-cased names of all sibling categories for the current
+  /// form mode, used for live duplicate-name validation.
+  Set<String> _getSiblingNames(List<CategoryNode> roots) {
+    switch (widget._mode) {
+      case _FormMode.createRoot:
+        return roots.map((n) => n.category.name.toLowerCase()).toSet();
+      case _FormMode.createSubcategory:
+        final parentUid = widget._parentNode!.category.uid;
+        final parent = _findNodeByUid(roots, parentUid);
+        return parent?.children
+                .map((n) => n.category.name.toLowerCase())
+                .toSet() ??
+            {};
+      case _FormMode.edit:
+        final selfUid = widget._existingNode!.category.uid;
+        final parentUid = widget._existingNode!.category.parentUid;
+        if (parentUid == null) {
+          return roots
+              .where((n) => n.category.uid != selfUid)
+              .map((n) => n.category.name.toLowerCase())
+              .toSet();
+        }
+        final parent = _findNodeByUid(roots, parentUid);
+        return parent?.children
+                .where((n) => n.category.uid != selfUid)
+                .map((n) => n.category.name.toLowerCase())
+                .toSet() ??
+            {};
+    }
+  }
+
+  CategoryNode? _findNodeByUid(List<CategoryNode> nodes, String uid) {
+    for (final node in nodes) {
+      if (node.category.uid == uid) return node;
+      final found = _findNodeByUid(node.children, uid);
+      if (found != null) return found;
+    }
+    return null;
+  }
 
   void _setTimeModel(TimeModel value) =>
       setState(() => _data = _data.copyWith(timeModel: value));
@@ -215,6 +261,10 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
       AppLogger.info('Category saved: $uid');
 
       if (mounted) Navigator.of(context).pop();
+    } on DuplicateCategoryNameException catch (_) {
+      if (mounted) {
+        setState(() => _nameError = 'Name already used by a sibling category');
+      }
     } on Object catch (e, st) {
       AppLogger.error('Failed to save category', e, st);
       if (mounted) {
@@ -229,12 +279,18 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final treeAsync = ref.watch(categoryTreeProvider);
+    final siblingNames = treeAsync.maybeWhen(
+      data: _getSiblingNames,
+      orElse: () => const <String>{},
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
         actions: [
           TextButton(
-            onPressed: _isSaving ? null : _save,
+            onPressed: (_isSaving || _nameError != null) ? null : _save,
             child: const Text('Save'),
           ),
         ],
@@ -251,7 +307,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
                 errorText: _nameError,
               ),
               textCapitalization: TextCapitalization.sentences,
-              onChanged: _setName,
+              onChanged: (v) => _setName(v, siblingNames),
               controller: _nameController,
             ),
             const SizedBox(height: 16),
