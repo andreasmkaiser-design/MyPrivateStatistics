@@ -219,6 +219,64 @@ void main() {
     sortOrder: 0,
   );
 
+  // ── Cycle 4: rename dialog inline validation ─────────────────────────────
+
+  testWidgets(
+    'rename dialog shows inline error when typed name matches a sibling',
+    (tester) async {
+      final running = _leaf(_cat(uid: 'r1', name: 'Running'));
+      final yoga = _leaf(_cat(uid: 'r2', name: 'Yoga'));
+      await tester.pumpWidget(_buildScreen(tree: [running, yoga], repo: repo));
+      await tester.pumpAndSettle();
+
+      // Open rename dialog for the first tile (Running); sibling is Yoga
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+
+      // Type the sibling name → inline error must appear
+      await tester.enterText(find.byType(TextField), 'Yoga');
+      await tester.pump();
+
+      expect(
+        find.text('Name already used by a sibling category'),
+        findsOneWidget,
+      );
+
+      // Rename button must be disabled
+      final renameButton = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Rename'),
+      );
+      expect(renameButton.onPressed, isNull);
+    },
+  );
+
+  testWidgets(
+    'rename dialog allows renaming to own name (self excluded from siblings)',
+    (tester) async {
+      final running = _leaf(_cat(uid: 'r1', name: 'Running'));
+      final yoga = _leaf(_cat(uid: 'r2', name: 'Yoga'));
+      await tester.pumpWidget(_buildScreen(tree: [running, yoga], repo: repo));
+      await tester.pumpAndSettle();
+
+      // Open rename dialog for the first tile (Running)
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+
+      // Retype own name → must not trigger an error
+      await tester.enterText(find.byType(TextField), 'Running');
+      await tester.pump();
+
+      expect(
+        find.text('Name already used by a sibling category'),
+        findsNothing,
+      );
+    },
+  );
+
   testWidgets('subcategory tile shows parent name above depth-1 node', (
     tester,
   ) async {

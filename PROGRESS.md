@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #23 (impl: Inline sibling-name validation in CategoryFormScreen and RenameCategoryDialog)
-- **Branch:** feature/issue-23-inline-name-validation
+- **Issue:** #24 (impl: Inline subcategory chip list in CategoryFormScreen)
+- **Branch:** feature/issue-24-inline-subcategory-chip-list
 - **Started:** —
 - **Status:** Not started
-- **Resume from:** Create branch → fix RenameCategoryDialog (StatefulWidget + sibling set) → fix CategoryFormScreen (live validation against tree) → lint → pause for review
+- **Resume from:** Read issue → /design-an-interface → /tdd
 
 ## Completed
 
@@ -22,7 +22,8 @@
 | #7 | Statistics — Temporal Proximity | feature/issue-7-statistics-temporal-proximity | 2026-05-05 |
 | #26 | fix: TextEditingController lifecycle in CategoryFormScreen | feature/issue-26-fix-text-editing-controller | 2026-05-07 |
 | #27 | fix: Category tree stream not reactive after writes | feature/issue-27-fix-watchTree-stream | 2026-05-07 |
-| #22 | Repository uniqueness guard for sibling names | feature/issue-22-repository-uniqueness-guard | 2026-05-07 |
+| #22 | Repository uniqueness guard for sibling names | feature/issue-22-repository-uniqueness-guard | 2026-05-08 |
+| #23 | Inline sibling-name validation (form + rename dialog) | feature/issue-23-inline-name-validation | 2026-05-08 |
 
 ## Pending (dependency order)
 
@@ -33,21 +34,18 @@
 | 4 | #10 | JSON Template Export / Import | — | 0010, 0012, 0014 |
 | 5 | #12 | Onboarding | #9 | 0004, 0005, 0012 |
 | 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
-| 7 | #22 | Repository uniqueness guard for sibling names | — | 0003, 0006, 0007, 0014, 0015 |
-| 8 | #23 | Inline sibling-name validation (form + rename dialog) | #22 | 0004, 0005, 0012, 0013, 0014 |
-| 8 | #24 | Inline subcategory chip list in CategoryFormScreen | #22 | 0004, 0005, 0012, 0013 |
+| 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013 |
+| 8 | #29 | fix: TextEditingController lifecycle in FieldEditorRow | — | 0013 |
 
 ## Blocked
 
 | Issue | Title | Waiting for |
 |---|---|---|
 | #12 | Onboarding | #9 |
-| #23 | Inline sibling-name validation | #22 |
-| #24 | Inline subcategory chip list | #22 |
 
 ## Notes
 
 - Issues use `/design-an-interface` before `/tdd`: #13, #15, #9, #6
 - New ADR written during implementation → add to ADRs column for all affected pending issues
 - Context > 70%: finish current red-green-refactor cycle → commit → update "Resume from" → new session
-- Parent PRDs: #20 (Category name uniqueness → impl: #22, #23), #21 (Inline subcategory creation → impl: #24), #25 (Text input + reactive tree bugs → impl: #26 ✓, #27)
+- Parent PRDs: #20 (Category name uniqueness → impl: #22 ✓, #23 ✓), #21 (Inline subcategory creation → impl: #24), #25 (Text input + reactive tree bugs → impl: #26 ✓, #27 ✓, #29)

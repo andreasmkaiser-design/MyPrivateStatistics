@@ -39,7 +39,8 @@ class CategoriesScreen extends ConsumerWidget {
                   onDelete: (node) => _showDeleteDialog(context, ref, node),
                   onAddChild: (node) =>
                       _openCreateSubcategoryForm(context, node),
-                  onRename: (node) => _showRenameDialog(context, ref, node),
+                  onRename: (node) =>
+                      _showRenameDialog(context, ref, node, roots),
                 ),
               ),
       ),
@@ -159,8 +160,8 @@ class CategoriesScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     CategoryNode node,
+    List<CategoryNode> roots,
   ) async {
-    final roots = ref.read(categoryTreeProvider).valueOrNull ?? [];
     final siblingNames = _siblingNamesFor(roots, node);
     final repo = ref.read(categoryRepositoryProvider);
 
