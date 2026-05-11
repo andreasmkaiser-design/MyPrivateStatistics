@@ -9,15 +9,18 @@ import 'package:private_statistics/features/categories/data/drift/categories_tab
 import 'package:private_statistics/features/categories/data/drift/fields_table.dart';
 import 'package:private_statistics/features/events/data/drift/event_field_values_table.dart';
 import 'package:private_statistics/features/events/data/drift/events_table.dart';
+import 'package:private_statistics/features/health/data/drift/health_records_table.dart';
 
 part 'app_database.g.dart';
 
 /// The app's Drift database.
 ///
-/// Exposes the [Categories], [Fields], [Events], and [EventFieldValues] tables
-/// and manages schema migrations.
+/// Exposes the [Categories], [Fields], [Events], [EventFieldValues], and
+/// [HealthRecords] tables and manages schema migrations.
 /// Use [AppDatabase.forTesting] to create an in-memory instance for tests.
-@DriftDatabase(tables: [Categories, Fields, Events, EventFieldValues])
+@DriftDatabase(
+  tables: [Categories, Fields, Events, EventFieldValues, HealthRecords],
+)
 class AppDatabase extends _$AppDatabase {
   /// Creates the production database backed by an on-device SQLite file.
   AppDatabase() : super(_openConnection());
@@ -26,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -59,6 +62,9 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'ALTER TABLE events ADD COLUMN range_end_ms INTEGER;',
           );
+        }
+        if (from < 5) {
+          await m.createTable(healthRecords);
         }
       }
     },

@@ -7,6 +7,7 @@ import 'package:private_statistics/core/database/app_database.dart';
 import 'package:private_statistics/core/database/database_provider.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/events/providers/event_providers.dart';
+import 'package:private_statistics/features/health/providers/health_providers.dart';
 import 'package:private_statistics/features/settings/presentation/settings_screen.dart';
 
 Widget _buildApp(AppDatabase db) => ProviderScope(
@@ -15,6 +16,7 @@ Widget _buildApp(AppDatabase db) => ProviderScope(
     categoryTreeProvider.overrideWith((_) => Stream.value(const [])),
     eventDaysInMonthProvider.overrideWith((ref, _) => Stream.value(const {})),
     eventsByDayProvider.overrideWith((ref, _) => Stream.value(const [])),
+    syncHourProvider.overrideWith((_) => Future.value(2)),
   ],
   child: const App(),
 );

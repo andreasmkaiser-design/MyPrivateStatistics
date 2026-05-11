@@ -2,10 +2,9 @@
 
 ## Current
 
-- **Issue:** #29 (fix: TextEditingController lifecycle in FieldEditorRow and _ConstraintEditor)
-- **Branch:** feature/issue-29-fix-field-editor-controller
-- **Started:** 2026-05-08
-- **Status:** Complete — pending PR
+- **Issue:** #11 (Backup & Restore)
+- **Branch:** (not yet created)
+- **Status:** Not started
 - **Resume from:** —
 
 ## Completed
@@ -25,15 +24,16 @@
 | #22 | Repository uniqueness guard for sibling names | feature/issue-22-repository-uniqueness-guard | 2026-05-08 |
 | #23 | Inline sibling-name validation (form + rename dialog) | feature/issue-23-inline-name-validation | 2026-05-08 |
 | #29 | fix: TextEditingController lifecycle in FieldEditorRow | feature/issue-29-fix-field-editor-controller | 2026-05-08 |
+| PR | #30 created for #29 | feature/issue-29-fix-field-editor-controller | 2026-05-10 |
+| #9 | Health Connect Integration | feature/issue-9-health-connect | 2026-05-11 |
 
 ## Pending (dependency order)
 
 | Phase | Issue | Title | Blocked by | ADRs to load |
 |---|---|---|---|---|
-| 2 | #9 | Health Connect Integration | — | 0008, 0015, 0016, 0018 |
 | 2 | #11 | Backup & Restore | — | 0014, 0015, 0016 |
 | 4 | #10 | JSON Template Export / Import | — | 0010, 0012, 0014 |
-| 5 | #12 | Onboarding | #9 | 0004, 0005, 0012 |
+| 5 | #12 | Onboarding | #9 ✓ | 0004, 0005, 0012 |
 | 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
 | 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013, 0019 |
 
@@ -41,7 +41,7 @@
 
 | Issue | Title | Waiting for |
 |---|---|---|
-| #12 | Onboarding | #9 |
+| #12 | Onboarding | #9 ✓ |
 
 ## Notes
 

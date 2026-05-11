@@ -23,5 +23,36 @@
   "settingsTitle": "Settings",
   "@settingsTitle": {
     "description": "Title of the Settings screen"
+  },
+  "healthSyncSectionTitle": "Health Connect",
+  "@healthSyncSectionTitle": {
+    "description": "Settings section header for Health Connect sync"
+  },
+  "healthSyncNowButton": "Sync now",
+  "@healthSyncNowButton": {
+    "description": "Button label to trigger a manual Health Connect sync"
+  },
+  "healthSyncSuccess": "Imported {count} new records",
+  "@healthSyncSuccess": {
+    "description": "Snackbar shown after a successful sync",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "healthSyncNoNewRecords": "No new records",
+  "@healthSyncNoNewRecords": {
+    "description": "Snackbar shown when sync found nothing new"
+  },
+  "healthSyncPermissionDenied": "Health Connect permission required",
+  "@healthSyncPermissionDenied": {
+    "description": "Snackbar shown when Health Connect permission is denied"
+  },
+  "healthSyncUnavailable": "Health Connect not available on this device",
+  "@healthSyncUnavailable": {
+    "description": "Snackbar shown when Health Connect is not installed"
+  },
+  "healthSyncDailyTimeLabel": "Daily sync time",
+  "@healthSyncDailyTimeLabel": {
+    "description": "Label for the daily sync time picker tile"
   }
 }
