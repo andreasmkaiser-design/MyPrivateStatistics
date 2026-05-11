@@ -54,5 +54,41 @@
   "healthSyncDailyTimeLabel": "Daily sync time",
   "@healthSyncDailyTimeLabel": {
     "description": "Label for the daily sync time picker tile"
+  },
+  "backupSectionTitle": "Backup & Restore",
+  "@backupSectionTitle": {
+    "description": "Settings section header for Backup & Restore"
+  },
+  "backupExportButton": "Export backup",
+  "@backupExportButton": {
+    "description": "Button label to export the database backup"
+  },
+  "backupRestoreButton": "Restore backup",
+  "@backupRestoreButton": {
+    "description": "Button label to restore from a backup file"
+  },
+  "backupExportSuccess": "Backup saved",
+  "@backupExportSuccess": {
+    "description": "Snackbar shown after a successful export"
+  },
+  "backupRestoreConfirmTitle": "Replace all data?",
+  "@backupRestoreConfirmTitle": {
+    "description": "Title of the restore confirmation dialog"
+  },
+  "backupRestoreConfirmBody": "All current data will be replaced with the backup.",
+  "@backupRestoreConfirmBody": {
+    "description": "Body of the restore confirmation dialog (no migration needed)"
+  },
+  "backupRestoreConfirmBodyMigration": "This backup uses an older schema and will be automatically updated. All current data will be replaced.",
+  "@backupRestoreConfirmBodyMigration": {
+    "description": "Body of restore confirmation dialog when schema migration is needed"
+  },
+  "backupRestoreConfirmCancel": "Cancel",
+  "@backupRestoreConfirmCancel": {
+    "description": "Cancel button in the restore confirmation dialog"
+  },
+  "backupRestoreConfirmProceed": "Restore",
+  "@backupRestoreConfirmProceed": {
+    "description": "Confirm button in the restore confirmation dialog"
   }
 }

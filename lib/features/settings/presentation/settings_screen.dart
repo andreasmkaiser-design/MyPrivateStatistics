@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:private_statistics/features/backup/presentation/backup_section.dart';
 import 'package:private_statistics/features/health/domain/models/sync_result.dart';
 import 'package:private_statistics/features/health/providers/health_providers.dart';
 import 'package:private_statistics/l10n/app_localizations.dart';
@@ -42,6 +43,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
+          _SectionHeader(title: l10n.backupSectionTitle),
+          const BackupSection(),
         ],
       ),
     );

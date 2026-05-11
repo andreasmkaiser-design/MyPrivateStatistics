@@ -5,5 +5,14 @@
   "navEvents": "Ereignisse",
   "navStatistics": "Statistiken",
   "navCategories": "Kategorien",
-  "settingsTitle": "Einstellungen"
+  "settingsTitle": "Einstellungen",
+  "backupSectionTitle": "Sicherung & Wiederherstellung",
+  "backupExportButton": "Sicherung exportieren",
+  "backupRestoreButton": "Sicherung wiederherstellen",
+  "backupExportSuccess": "Sicherung gespeichert",
+  "backupRestoreConfirmTitle": "Alle Daten ersetzen?",
+  "backupRestoreConfirmBody": "Alle aktuellen Daten werden durch die Sicherung ersetzt.",
+  "backupRestoreConfirmBodyMigration": "Diese Sicherung verwendet ein älteres Schema und wird automatisch aktualisiert. Alle aktuellen Daten werden ersetzt.",
+  "backupRestoreConfirmCancel": "Abbrechen",
+  "backupRestoreConfirmProceed": "Wiederherstellen"
 }
