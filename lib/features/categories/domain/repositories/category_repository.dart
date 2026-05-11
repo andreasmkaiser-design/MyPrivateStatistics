@@ -15,6 +15,12 @@ abstract class CategoryRepository {
   /// schema. Emits the current state immediately upon subscription.
   Stream<List<CategoryNode>> watchTree();
 
+  /// Returns every category in the database as a flat (unordered) list.
+  ///
+  /// Used by the template export flow to serialise the full hierarchy without
+  /// building the tree structure.
+  Future<List<Category>> getAll();
+
   /// Returns the category identified by [uid], or `null` if not found.
   Future<Category?> findByUid(String uid);
 

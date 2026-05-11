@@ -90,5 +90,48 @@
   "backupRestoreConfirmProceed": "Restore",
   "@backupRestoreConfirmProceed": {
     "description": "Confirm button in the restore confirmation dialog"
+  },
+  "templateExportAction": "Export template",
+  "@templateExportAction": {
+    "description": "AppBar menu action to export the category hierarchy as JSON"
+  },
+  "templateImportAction": "Import template",
+  "@templateImportAction": {
+    "description": "AppBar menu action to import a category hierarchy from JSON"
+  },
+  "templateExportSuccess": "Template exported",
+  "@templateExportSuccess": {
+    "description": "Snackbar shown after a successful template export"
+  },
+  "templateImportSuccess": "Imported {count} categories",
+  "@templateImportSuccess": {
+    "description": "Snackbar shown after a successful template import",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "templateConflictTitle": "Name conflicts",
+  "@templateConflictTitle": {
+    "description": "Title of the template import conflict dialog"
+  },
+  "templateConflictBody": "The following category names already exist. Choose what to do for each:",
+  "@templateConflictBody": {
+    "description": "Body text of the template import conflict dialog"
+  },
+  "templateConflictKeepBoth": "Keep both",
+  "@templateConflictKeepBoth": {
+    "description": "Per-conflict choice: import the category even though the name exists"
+  },
+  "templateConflictDiscard": "Skip",
+  "@templateConflictDiscard": {
+    "description": "Per-conflict choice: skip importing the conflicting category"
+  },
+  "templateConflictImport": "Import",
+  "@templateConflictImport": {
+    "description": "Confirm button in the template conflict dialog"
+  },
+  "templateConflictCancel": "Cancel",
+  "@templateConflictCancel": {
+    "description": "Cancel button in the template conflict dialog"
   }
 }

@@ -16,6 +16,7 @@ class Category {
     required this.timeModel,
     required this.ownFields,
     this.parentUid,
+    this.sourceUid,
   });
 
   /// Globally unique identifier for this category within this app installation.
@@ -23,6 +24,12 @@ class Category {
 
   /// The UID of the parent category, or `null` if this is a root category.
   final String? parentUid;
+
+  /// The UID this category was imported from, or `null` for locally-created
+  /// categories and first-generation exports.
+  ///
+  /// Populated by the JSON template import flow (see `ImportTemplateUseCase`).
+  final String? sourceUid;
 
   /// Human-readable name shown throughout the UI.
   final String name;

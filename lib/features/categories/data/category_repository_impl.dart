@@ -31,6 +31,28 @@ class CategoryRepositoryImpl implements CategoryRepository {
   }
 
   @override
+  Future<List<Category>> getAll() async {
+    final catRows = await _db.select(_db.categories).get();
+    final fieldRows = await _db.select(_db.fields).get();
+
+    final fieldsByCategory = <String, List<Field>>{};
+    for (final row in fieldRows) {
+      fieldsByCategory
+          .putIfAbsent(row.categoryUid, () => [])
+          .add(_toField(row));
+    }
+
+    return [
+      for (final row in catRows)
+        _toCategory(
+          row,
+          (fieldsByCategory[row.uid] ?? [])
+            ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
+        ),
+    ];
+  }
+
+  @override
   Future<Category?> findByUid(String uid) async {
     final row = await (_db.select(
       _db.categories,
@@ -72,6 +94,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
               parentUid: Value(category.parentUid),
               name: Value(category.name),
               timeModelIndex: Value(category.timeModel.index),
+              sourceUid: Value(category.sourceUid),
             ),
           );
 
@@ -211,6 +234,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     name: row.name,
     timeModel: TimeModel.values[row.timeModelIndex],
     ownFields: fields,
+    sourceUid: row.sourceUid,
   );
 
   Field _toField(FieldRow row) {

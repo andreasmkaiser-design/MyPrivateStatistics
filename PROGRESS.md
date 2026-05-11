@@ -2,10 +2,10 @@
 
 ## Current
 
-- **Issue:** #11 (Backup & Restore)
-- **Branch:** (not yet created)
+- **Issue:** #12 (Onboarding)
+- **Branch:** feature/issue-12-onboarding
 - **Status:** Not started
-- **Resume from:** —
+- **Resume from:** Beginning — read issue, load ADRs 0004, 0005, 0012
 
 ## Completed
 
@@ -26,22 +26,20 @@
 | #29 | fix: TextEditingController lifecycle in FieldEditorRow | feature/issue-29-fix-field-editor-controller | 2026-05-08 |
 | PR | #30 created for #29 | feature/issue-29-fix-field-editor-controller | 2026-05-10 |
 | #9 | Health Connect Integration | feature/issue-9-health-connect | 2026-05-11 |
+| #11 | Backup & Restore | feature/issue-11-backup-restore | 2026-05-11 |
+| #10 | JSON Template Export / Import | feature/issue-10-json-template-export-import | 2026-05-11 |
 
 ## Pending (dependency order)
 
 | Phase | Issue | Title | Blocked by | ADRs to load |
 |---|---|---|---|---|
-| 2 | #11 | Backup & Restore | — | 0014, 0015, 0016 |
-| 4 | #10 | JSON Template Export / Import | — | 0010, 0012, 0014 |
 | 5 | #12 | Onboarding | #9 ✓ | 0004, 0005, 0012 |
 | 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
 | 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013, 0019 |
 
 ## Blocked
 
-| Issue | Title | Waiting for |
-|---|---|---|
-| #12 | Onboarding | #9 ✓ |
+_(none)_
 
 ## Notes
 

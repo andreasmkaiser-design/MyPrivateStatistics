@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,6 +65,13 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 5) {
           await m.createTable(healthRecords);
+        }
+        if (from < 6) {
+          // Add nullable source_uid column for JSON template import tracking.
+          // Existing locally-created categories default to NULL.
+          await customStatement(
+            'ALTER TABLE categories ADD COLUMN source_uid TEXT;',
+          );
         }
       }
     },

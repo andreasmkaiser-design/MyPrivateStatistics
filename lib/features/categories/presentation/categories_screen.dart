@@ -6,6 +6,10 @@ import 'package:private_statistics/features/categories/domain/models/category_no
 import 'package:private_statistics/features/categories/presentation/category_form_screen.dart';
 import 'package:private_statistics/features/categories/presentation/category_tree_tile.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
+import 'package:private_statistics/features/template/domain/models/template_import_result.dart';
+import 'package:private_statistics/features/template/presentation/template_notifier.dart';
+import 'package:private_statistics/features/template/presentation/template_state.dart';
+import 'package:private_statistics/l10n/app_localizations.dart';
 
 /// The Categories tab — shows the full category tree and entry points for
 /// creating, editing, renaming, and deleting categories.
@@ -17,8 +21,43 @@ class CategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final treeAsync = ref.watch(categoryTreeProvider);
     final expandedUids = ref.watch(expandedCategoryUidsProvider);
+    final l10n = AppLocalizations.of(context)!;
+
+    ref.listen<AsyncValue<TemplateState>>(templateNotifierProvider, (_, next) {
+      if (!context.mounted) return;
+      final value = next.valueOrNull;
+      if (value is TemplateConflictsFound) {
+        _showConflictDialog(context, ref, l10n, value.conflicts);
+      } else if (value is TemplateIdle && next.hasValue) {
+        // Returned to idle after a successful export — show snackbar only
+        // when triggered by an explicit action (handled in _export).
+      }
+    });
 
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          PopupMenuButton<_TemplateAction>(
+            icon: const Icon(Icons.import_export),
+            tooltip: 'Template actions',
+            onSelected: (action) => switch (action) {
+              _TemplateAction.export => _export(context, ref, l10n),
+              _TemplateAction.import =>
+                ref.read(templateNotifierProvider.notifier).startImport(),
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: _TemplateAction.export,
+                child: Text(l10n.templateExportAction),
+              ),
+              PopupMenuItem(
+                value: _TemplateAction.import,
+                child: Text(l10n.templateImportAction),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: treeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) {
@@ -177,6 +216,56 @@ class CategoriesScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _export(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    await ref.read(templateNotifierProvider.notifier).exportTemplate();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.templateExportSuccess)));
+  }
+
+  Future<void> _showConflictDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    List<TemplateNameConflict> conflicts,
+  ) async {
+    final resolutions = await showDialog<Map<String, ConflictResolution>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _TemplateConflictDialog(conflicts: conflicts, l10n: l10n),
+    );
+
+    if (!context.mounted) return;
+    if (resolutions == null) return;
+
+    final result = await ref
+        .read(templateNotifierProvider.notifier)
+        .resolveAndImport(resolutions);
+
+    if (!context.mounted) return;
+    if (result == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.templateImportSuccess(result.imported.length)),
+      ),
+    );
+  }
+}
+
+// ── File-level helpers ───────────────────────────────────────────────────
+
+enum _TemplateAction {
+  /// Export the category hierarchy as a JSON template.
+  export,
+
+  /// Import a JSON template into the category hierarchy.
+  import,
 }
 
 // ── Private widgets ──────────────────────────────────────────────────────
@@ -337,6 +426,117 @@ class _RenameCategoryDialogState extends State<_RenameCategoryDialog> {
         TextButton(
           onPressed: _canRename ? _submit : null,
           child: const Text('Rename'),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Template conflict dialog ─────────────────────────────────────────────
+
+class _TemplateConflictDialog extends StatefulWidget {
+  const _TemplateConflictDialog({required this.conflicts, required this.l10n});
+
+  /// The name conflicts the user must resolve.
+  final List<TemplateNameConflict> conflicts;
+
+  /// Localisation strings.
+  final AppLocalizations l10n;
+
+  @override
+  State<_TemplateConflictDialog> createState() =>
+      _TemplateConflictDialogState();
+}
+
+class _TemplateConflictDialogState extends State<_TemplateConflictDialog> {
+  late final Map<String, ConflictResolution> _resolutions;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolutions = {
+      for (final c in widget.conflicts)
+        c.importedUid: ConflictResolution.discard,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.l10n.templateConflictTitle),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.l10n.templateConflictBody),
+            const SizedBox(height: 12),
+            for (final conflict in widget.conflicts)
+              _ConflictRow(
+                conflict: conflict,
+                resolution: _resolutions[conflict.importedUid]!,
+                l10n: widget.l10n,
+                onChanged: (r) =>
+                    setState(() => _resolutions[conflict.importedUid] = r),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.l10n.templateConflictCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(
+            context,
+          ).pop(Map<String, ConflictResolution>.unmodifiable(_resolutions)),
+          child: Text(widget.l10n.templateConflictImport),
+        ),
+      ],
+    );
+  }
+}
+
+class _ConflictRow extends StatelessWidget {
+  const _ConflictRow({
+    required this.conflict,
+    required this.resolution,
+    required this.l10n,
+    required this.onChanged,
+  });
+
+  /// The conflict this row represents.
+  final TemplateNameConflict conflict;
+
+  /// Current resolution choice for this conflict.
+  final ConflictResolution resolution;
+
+  /// Localisation strings.
+  final AppLocalizations l10n;
+
+  /// Called when the user toggles the resolution.
+  final ValueChanged<ConflictResolution> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Text(conflict.importedName)),
+        SegmentedButton<ConflictResolution>(
+          segments: [
+            ButtonSegment(
+              value: ConflictResolution.keepBoth,
+              label: Text(l10n.templateConflictKeepBoth),
+            ),
+            ButtonSegment(
+              value: ConflictResolution.discard,
+              label: Text(l10n.templateConflictDiscard),
+            ),
+          ],
+          selected: {resolution},
+          onSelectionChanged: (s) => onChanged(s.first),
+          showSelectedIcon: false,
         ),
       ],
     );

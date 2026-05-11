@@ -14,5 +14,15 @@
   "backupRestoreConfirmBody": "Alle aktuellen Daten werden durch die Sicherung ersetzt.",
   "backupRestoreConfirmBodyMigration": "Diese Sicherung verwendet ein älteres Schema und wird automatisch aktualisiert. Alle aktuellen Daten werden ersetzt.",
   "backupRestoreConfirmCancel": "Abbrechen",
-  "backupRestoreConfirmProceed": "Wiederherstellen"
+  "backupRestoreConfirmProceed": "Wiederherstellen",
+  "templateExportAction": "Vorlage exportieren",
+  "templateImportAction": "Vorlage importieren",
+  "templateExportSuccess": "Vorlage exportiert",
+  "templateImportSuccess": "{count} Kategorien importiert",
+  "templateConflictTitle": "Namenskonflikte",
+  "templateConflictBody": "Die folgenden Kategorienamen existieren bereits. Wähle eine Aktion:",
+  "templateConflictKeepBoth": "Beide behalten",
+  "templateConflictDiscard": "Überspringen",
+  "templateConflictImport": "Importieren",
+  "templateConflictCancel": "Abbrechen"
 }

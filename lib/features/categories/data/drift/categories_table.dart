@@ -25,6 +25,13 @@ class Categories extends Table {
   /// Ordinal index of the `TimeModel` enum value for this category.
   IntColumn get timeModelIndex => integer()();
 
+  /// UID of the category this was originally imported from, or `null` for
+  /// locally-created categories and first-generation exports.
+  ///
+  /// Set to the exporting app's [uid] when this category is imported from a
+  /// JSON template so that future "update from source" features can match rows.
+  TextColumn get sourceUid => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {uid};
 }

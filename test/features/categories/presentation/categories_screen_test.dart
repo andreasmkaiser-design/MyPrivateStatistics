@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,6 +12,7 @@ import 'package:private_statistics/features/categories/domain/models/time_model.
 import 'package:private_statistics/features/categories/domain/repositories/category_repository.dart';
 import 'package:private_statistics/features/categories/presentation/categories_screen.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
+import 'package:private_statistics/l10n/app_localizations.dart';
 
 class _MockCategoryRepository extends Mock implements CategoryRepository {}
 
@@ -24,7 +26,15 @@ Widget _buildScreen({
     categoryTreeProvider.overrideWith((_) => Stream.value(tree)),
     expandedCategoryUidsProvider.overrideWith((_) => expandedUids),
   ],
-  child: const MaterialApp(home: CategoriesScreen()),
+  child: const MaterialApp(
+    localizationsDelegates: [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: CategoriesScreen(),
+  ),
 );
 
 Category _cat({
