@@ -7,17 +7,23 @@ import 'package:private_statistics/core/logging/app_logger.dart';
 import 'package:private_statistics/features/backup/providers/backup_providers.dart';
 import 'package:private_statistics/features/health/data/health_sync_task.dart';
 import 'package:private_statistics/features/health/data/shared_prefs_sync_schedule_store.dart';
+import 'package:private_statistics/features/onboarding/data/shared_prefs_onboarding_store.dart';
+import 'package:private_statistics/features/onboarding/providers/onboarding_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 /// Application entry point.
 ///
-/// Initialises [AppDatabase], registers the WorkManager Health Connect sync
-/// task, and injects the database via [ProviderScope] before running [App].
+/// Initialises [AppDatabase], pre-warms [SharedPreferences] for the
+/// onboarding flag, registers the WorkManager Health Connect sync
+/// task, and injects dependencies via [ProviderScope] before running [App].
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final db = AppDatabase();
   AppLogger.info('Database initialised');
+
+  final prefs = await SharedPreferences.getInstance();
 
   await Workmanager().initialize(healthSyncCallbackDispatcher);
   final syncHour = await SharedPrefsSyncScheduleStore().loadSyncHour();
@@ -30,6 +36,9 @@ void main() async {
     ProviderScope(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
+        onboardingStoreProvider.overrideWithValue(
+          SharedPrefsOnboardingStore(prefs),
+        ),
         ...backupOverrides,
       ],
       child: const App(),

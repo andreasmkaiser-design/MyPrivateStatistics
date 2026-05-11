@@ -24,5 +24,17 @@
   "templateConflictKeepBoth": "Beide behalten",
   "templateConflictDiscard": "Überspringen",
   "templateConflictImport": "Importieren",
-  "templateConflictCancel": "Abbrechen"
+  "templateConflictCancel": "Abbrechen",
+  "onboardingSkip": "Überspringen",
+  "onboardingScreen1Title": "Willkommen bei Private Statistiken",
+  "onboardingScreen1Body": "Verfolge die Ereignisse, die dir wichtig sind – Schlaf, Sport, Stimmung, alles. Protokolliere Ereignisse und entdecke Korrelationen.",
+  "onboardingScreen2Title": "Health Connect",
+  "onboardingScreen2Rationale": "Verbinde dich mit Health Connect, um Schritte, Schlaf und Sport automatisch als Ereignisse zu importieren. Du kannst diese Berechtigung später in den Einstellungen erteilen.",
+  "onboardingScreen2GrantButton": "Health Connect-Zugriff erteilen",
+  "onboardingScreen2ContinueButton": "Weiter",
+  "onboardingScreen3Title": "Loslegen",
+  "onboardingScreen3ExampleTitle": "Mit Beispielkategorien starten",
+  "onboardingScreen3ExampleSubtitle": "Enthält Schlaf und Sport mit vorgefertigten Feldern.",
+  "onboardingScreen3EmptyTitle": "Leer starten",
+  "onboardingScreen3EmptySubtitle": "Beginne mit einem leeren Bereich und erstelle eigene Kategorien."
 }

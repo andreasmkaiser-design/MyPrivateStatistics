@@ -133,5 +133,53 @@
   "templateConflictCancel": "Cancel",
   "@templateConflictCancel": {
     "description": "Cancel button in the template conflict dialog"
+  },
+  "onboardingSkip": "Skip",
+  "@onboardingSkip": {
+    "description": "Skip button shown on every onboarding screen"
+  },
+  "onboardingScreen1Title": "Welcome to Private Statistics",
+  "@onboardingScreen1Title": {
+    "description": "Headline on onboarding screen 1"
+  },
+  "onboardingScreen1Body": "Track the events that matter to you — sleep, sport, mood, anything. Log events and discover correlations over time.",
+  "@onboardingScreen1Body": {
+    "description": "Body text on onboarding screen 1 explaining the app concept"
+  },
+  "onboardingScreen2Title": "Health Connect",
+  "@onboardingScreen2Title": {
+    "description": "Headline on onboarding screen 2"
+  },
+  "onboardingScreen2Rationale": "Connect to Health Connect to automatically import your steps, sleep, and workouts as tracked events. You can grant this permission later in Settings.",
+  "@onboardingScreen2Rationale": {
+    "description": "Rationale text for Health Connect permission on onboarding screen 2"
+  },
+  "onboardingScreen2GrantButton": "Grant Health Connect access",
+  "@onboardingScreen2GrantButton": {
+    "description": "Button to trigger Health Connect permission request on onboarding screen 2"
+  },
+  "onboardingScreen2ContinueButton": "Continue",
+  "@onboardingScreen2ContinueButton": {
+    "description": "Continue button on onboarding screen 2 (proceeds without granting HC)"
+  },
+  "onboardingScreen3Title": "Get started",
+  "@onboardingScreen3Title": {
+    "description": "Headline on onboarding screen 3"
+  },
+  "onboardingScreen3ExampleTitle": "Start with example categories",
+  "@onboardingScreen3ExampleTitle": {
+    "description": "Label for the example-categories choice on onboarding screen 3"
+  },
+  "onboardingScreen3ExampleSubtitle": "Includes Sleep and Sport with pre-built fields.",
+  "@onboardingScreen3ExampleSubtitle": {
+    "description": "Subtitle for the example-categories choice on onboarding screen 3"
+  },
+  "onboardingScreen3EmptyTitle": "Start empty",
+  "@onboardingScreen3EmptyTitle": {
+    "description": "Label for the empty choice on onboarding screen 3"
+  },
+  "onboardingScreen3EmptySubtitle": "Begin with a blank slate and create your own categories.",
+  "@onboardingScreen3EmptySubtitle": {
+    "description": "Subtitle for the empty choice on onboarding screen 3"
   }
 }
