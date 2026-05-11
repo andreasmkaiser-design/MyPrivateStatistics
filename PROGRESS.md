@@ -2,10 +2,10 @@
 
 ## Current
 
-- **Issue:** #12 (Onboarding)
-- **Branch:** feature/issue-12-onboarding
+- **Issue:** #8 (Statistics — Calendar Visualisation)
+- **Branch:** TBD
 - **Status:** Not started
-- **Resume from:** Beginning — read issue, load ADRs 0004, 0005, 0012
+- **Resume from:** Beginning — read issue, load ADRs 0005, 0012
 
 ## Completed
 
@@ -28,12 +28,12 @@
 | #9 | Health Connect Integration | feature/issue-9-health-connect | 2026-05-11 |
 | #11 | Backup & Restore | feature/issue-11-backup-restore | 2026-05-11 |
 | #10 | JSON Template Export / Import | feature/issue-10-json-template-export-import | 2026-05-11 |
+| #12 | Onboarding wizard | feature/issue-12-onboarding-v2 | 2026-05-11 |
 
 ## Pending (dependency order)
 
 | Phase | Issue | Title | Blocked by | ADRs to load |
 |---|---|---|---|---|
-| 5 | #12 | Onboarding | #9 ✓ | 0004, 0005, 0012 |
 | 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
 | 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013, 0019 |
 
