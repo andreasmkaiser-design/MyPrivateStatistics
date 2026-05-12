@@ -1,6 +1,8 @@
 import 'package:private_statistics/features/categories/domain/models/category.dart';
 import 'package:private_statistics/features/events/domain/models/event.dart';
 import 'package:private_statistics/features/events/domain/models/event_time.dart';
+import 'package:private_statistics/features/statistics/domain/models/calendar_data.dart';
+import 'package:private_statistics/features/statistics/domain/models/calendar_day_state.dart';
 import 'package:private_statistics/features/statistics/domain/models/co_occurrence_result.dart';
 
 /// Computes [CoOccurrenceResult] lists using the Jaccard index (ADR-0017).
@@ -111,6 +113,63 @@ class CoOccurrenceCalculator {
           toDay.isAfter(windowToDay) ? windowToDay : toDay,
         );
     }
+  }
+
+  /// Builds a [CalendarData] value object for a specific source/candidate pair.
+  ///
+  /// Selects the candidate at [candidateIndex] from the pre-sorted [results]
+  /// list (0 = top-ranked). Returns `null` when [results] is empty or
+  /// [candidateIndex] is out of range.
+  ///
+  /// Every calendar day from [windowFrom] to [windowTo] inclusive is present
+  /// in [CalendarData.stateByDay], classified as [CalendarDayState.both],
+  /// [CalendarDayState.sourceOnly], [CalendarDayState.candidateOnly], or
+  /// [CalendarDayState.neither].
+  CalendarData? buildCalendarData({
+    required String sourceCategoryUid,
+    required String sourceCategoryName,
+    required List<CoOccurrenceResult> results,
+    required int candidateIndex,
+    required List<Event> eventsInWindow,
+    required DateTime windowFrom,
+    required DateTime windowTo,
+  }) {
+    if (results.isEmpty || candidateIndex >= results.length) return null;
+
+    final candidate = results[candidateIndex];
+    final daysByCategory = _buildDaysByCategory(
+      eventsInWindow,
+      windowFrom,
+      windowTo,
+    );
+    final sourceDays = daysByCategory[sourceCategoryUid] ?? const <DateTime>{};
+    final candidateDays =
+        daysByCategory[candidate.candidateCategoryUid] ?? const <DateTime>{};
+
+    final stateByDay = <DateTime, CalendarDayState>{};
+    var cursor = DateTime(windowFrom.year, windowFrom.month, windowFrom.day);
+    final lastDay = DateTime(windowTo.year, windowTo.month, windowTo.day);
+    while (!cursor.isAfter(lastDay)) {
+      final inSource = sourceDays.contains(cursor);
+      final inCandidate = candidateDays.contains(cursor);
+      stateByDay[cursor] = switch ((inSource, inCandidate)) {
+        (true, true) => CalendarDayState.both,
+        (true, false) => CalendarDayState.sourceOnly,
+        (false, true) => CalendarDayState.candidateOnly,
+        (false, false) => CalendarDayState.neither,
+      };
+      cursor = DateTime(cursor.year, cursor.month, cursor.day + 1);
+    }
+
+    return CalendarData(
+      windowFrom: windowFrom,
+      windowTo: windowTo,
+      sourceCategoryUid: sourceCategoryUid,
+      sourceCategoryName: sourceCategoryName,
+      candidateCategoryUid: candidate.candidateCategoryUid,
+      candidateCategoryName: candidate.candidateCategoryName,
+      stateByDay: stateByDay,
+    );
   }
 
   Set<DateTime> _dayRange(DateTime from, DateTime to) {

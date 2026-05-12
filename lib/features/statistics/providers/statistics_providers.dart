@@ -6,6 +6,7 @@ import 'package:private_statistics/features/events/providers/event_providers.dar
 import 'package:private_statistics/features/statistics/domain/algorithms/co_occurrence_calculator.dart';
 import 'package:private_statistics/features/statistics/domain/algorithms/temporal_proximity_calculator.dart';
 import 'package:private_statistics/features/statistics/domain/models/analysis_window.dart';
+import 'package:private_statistics/features/statistics/domain/models/calendar_data.dart';
 import 'package:private_statistics/features/statistics/domain/models/co_occurrence_result.dart';
 import 'package:private_statistics/features/statistics/domain/models/temporal_proximity_result.dart';
 import 'package:private_statistics/features/statistics/domain/models/time_window.dart';
@@ -93,6 +94,55 @@ final temporalProximityResultsProvider =
         timeWindow: timeWindow.duration,
       );
     });
+
+/// Zero-based index of the candidate shown in the co-occurrence calendar.
+///
+/// Defaults to `0` (the top-ranked candidate from
+/// [coOccurrenceResultsProvider]). Clamped to the results list length inside
+/// [calendarDataProvider] so that source-category changes never leave a
+/// stale out-of-range index.
+final calendarCandidateIndexProvider = StateProvider<int>((ref) => 0);
+
+/// Pre-computed [CalendarData] for the co-occurrence calendar.
+///
+/// Returns `null` when no source category is selected or when
+/// [coOccurrenceResultsProvider] returns an empty list. Recomputes whenever
+/// the source category, analysis window, candidate index, or event data
+/// changes (ADR-0009).
+final calendarDataProvider = FutureProvider<CalendarData?>((ref) async {
+  final sourceCategoryUid = ref.watch(statisticsSourceCategoryProvider);
+  if (sourceCategoryUid == null) return null;
+
+  final results = await ref.watch(coOccurrenceResultsProvider.future);
+  if (results.isEmpty) return null;
+
+  final candidateIndex = ref.watch(calendarCandidateIndexProvider);
+  final safeIndex = candidateIndex.clamp(0, results.length - 1);
+
+  final window = ref.watch(statisticsAnalysisWindowProvider);
+  final categoryTree = await ref.watch(categoryTreeProvider.future);
+  final eventsInWindow = await ref
+      .read(eventRepositoryProvider)
+      .findInWindow(window.from, window.to);
+
+  final allCategories = _flattenTree(categoryTree);
+  final sourceName =
+      allCategories
+          .where((c) => c.uid == sourceCategoryUid)
+          .map((c) => c.name)
+          .firstOrNull ??
+      '';
+
+  return CoOccurrenceCalculator().buildCalendarData(
+    sourceCategoryUid: sourceCategoryUid,
+    sourceCategoryName: sourceName,
+    results: results,
+    candidateIndex: safeIndex,
+    eventsInWindow: eventsInWindow,
+    windowFrom: window.from,
+    windowTo: window.to,
+  );
+});
 
 List<Category> _flattenTree(List<CategoryNode> nodes) {
   final result = <Category>[];
