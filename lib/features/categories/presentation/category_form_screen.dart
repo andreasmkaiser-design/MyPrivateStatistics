@@ -8,6 +8,7 @@ import 'package:private_statistics/features/categories/domain/models/category.da
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/domain/models/resolved_field.dart';
 import 'package:private_statistics/features/categories/domain/models/time_model.dart';
+import 'package:private_statistics/features/categories/domain/schema_inheritance_resolver.dart';
 import 'package:private_statistics/features/categories/presentation/field_draft.dart';
 import 'package:private_statistics/features/categories/presentation/field_editor_row.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
@@ -103,6 +104,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   late TextEditingController _nameController;
   String? _nameError;
   bool _isSaving = false;
+  List<String> _pendingChildren = [];
 
   @override
   void initState() {
@@ -209,6 +211,31 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     return null;
   }
 
+  /// Returns the 0-based depth of the node with [uid] in [nodes], or -1.
+  int _nodeDepth(List<CategoryNode> nodes, String uid, int depth) {
+    for (final node in nodes) {
+      if (node.category.uid == uid) return depth;
+      final found = _nodeDepth(node.children, uid, depth + 1);
+      if (found >= 0) return found;
+    }
+    return -1;
+  }
+
+  /// Whether the inline subcategory section should be shown.
+  ///
+  /// Hidden in edit mode and when the new category would sit at
+  /// [SchemaInheritanceResolver.maxDepth] − 1, meaning its inline children
+  /// would exceed the depth limit.
+  bool _showSubcategorySection(List<CategoryNode> roots) {
+    if (widget._mode == _FormMode.edit) return false;
+    if (widget._mode == _FormMode.createRoot) return true;
+    final parentUid = widget._parentNode!.category.uid;
+    final parentDepth = _nodeDepth(roots, parentUid, 0);
+    if (parentDepth < 0) return true; // tree not yet indexed — safe default
+    // children of new category would be at parentDepth + 2
+    return parentDepth + 2 < SchemaInheritanceResolver.maxDepth;
+  }
+
   void _setTimeModel(TimeModel value) =>
       setState(() => _data = _data.copyWith(timeModel: value));
 
@@ -233,6 +260,14 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     final insertAt = newIndex > oldIndex ? newIndex - 1 : newIndex;
     list.insert(insertAt, item);
     _data = _data.copyWith(fields: list);
+  });
+
+  void _addChild(String name) =>
+      setState(() => _pendingChildren = [..._pendingChildren, name]);
+
+  void _removeChild(int index) => setState(() {
+    final list = List<String>.from(_pendingChildren)..removeAt(index);
+    _pendingChildren = list;
   });
 
   Future<void> _save() async {
@@ -260,6 +295,37 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
       await ref.read(categoryRepositoryProvider).save(category);
       AppLogger.info('Category saved: $uid');
 
+      if (_pendingChildren.isNotEmpty) {
+        var failCount = 0;
+        for (final childName in _pendingChildren) {
+          try {
+            await ref
+                .read(categoryRepositoryProvider)
+                .save(
+                  Category(
+                    uid: _generateUid(),
+                    name: childName,
+                    parentUid: uid,
+                    timeModel: _data.timeModel,
+                    ownFields: const [],
+                  ),
+                );
+            AppLogger.info('Inline child saved: $childName');
+          } on Object catch (e, st) {
+            AppLogger.error('Failed to save inline child "$childName"', e, st);
+            failCount++;
+          }
+        }
+        if (failCount > 0 && mounted) {
+          final suffix = failCount == 1 ? 'y' : 'ies';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$failCount subcategor$suffix could not be saved'),
+            ),
+          );
+        }
+      }
+
       if (mounted) Navigator.of(context).pop();
     } on DuplicateCategoryNameException catch (_) {
       if (mounted) {
@@ -283,6 +349,10 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     final siblingNames = treeAsync.maybeWhen(
       data: _getSiblingNames,
       orElse: () => const <String>{},
+    );
+    final showSubcatSection = treeAsync.maybeWhen(
+      data: _showSubcategorySection,
+      orElse: () => widget._mode != _FormMode.edit,
     );
 
     return Scaffold(
@@ -364,6 +434,16 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Add field'),
             ),
+
+            // Inline subcategory section — create modes only, depth-limited
+            if (showSubcatSection) ...[
+              const SizedBox(height: 16),
+              _SubcategorySection(
+                pendingNames: _pendingChildren,
+                onAdd: _addChild,
+                onRemove: _removeChild,
+              ),
+            ],
           ],
         ),
       ),
@@ -420,6 +500,138 @@ class _InheritedFieldChip extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
+    );
+  }
+}
+
+class _SubcategorySection extends StatefulWidget {
+  const _SubcategorySection({
+    required this.pendingNames,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final List<String> pendingNames;
+  final ValueChanged<String> onAdd;
+  final ValueChanged<int> onRemove;
+
+  @override
+  State<_SubcategorySection> createState() => _SubcategorySectionState();
+}
+
+class _SubcategorySectionState extends State<_SubcategorySection> {
+  bool _editing = false;
+  String? _inputError;
+  late final TextEditingController _nameController;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditing() {
+    setState(() {
+      _editing = true;
+      _inputError = null;
+    });
+    _nameController.clear();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _focusNode.requestFocus(),
+    );
+  }
+
+  void _cancel() => setState(() {
+    _editing = false;
+    _inputError = null;
+    _nameController.clear();
+  });
+
+  void _confirm() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _inputError = 'Name is required');
+      return;
+    }
+    if (widget.pendingNames.any((n) => n.toLowerCase() == name.toLowerCase())) {
+      setState(() => _inputError = 'Already in list');
+      return;
+    }
+    widget.onAdd(name);
+    setState(() {
+      _editing = false;
+      _inputError = null;
+    });
+    _nameController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Subcategories', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 8),
+        if (widget.pendingNames.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (var i = 0; i < widget.pendingNames.length; i++)
+                InputChip(
+                  label: Text(widget.pendingNames[i]),
+                  onDeleted: () => widget.onRemove(i),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+        ],
+        if (!_editing)
+          TextButton.icon(
+            onPressed: _startEditing,
+            icon: const Icon(Icons.add),
+            label: const Text('Add subcategory'),
+          ),
+        if (_editing) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Subcategory name',
+                    errorText: _inputError,
+                    isDense: true,
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                  onSubmitted: (_) => _confirm(),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.check),
+                tooltip: 'Confirm',
+                onPressed: _confirm,
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Cancel',
+                onPressed: _cancel,
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
