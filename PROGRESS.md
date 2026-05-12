@@ -2,10 +2,10 @@
 
 ## Current
 
-- **Issue:** #8 (Statistics — Calendar Visualisation)
+- **Issue:** #24 (Inline subcategory chip list in CategoryFormScreen)
 - **Branch:** TBD
 - **Status:** Not started
-- **Resume from:** Beginning — read issue, load ADRs 0005, 0012
+- **Resume from:** Beginning — read issue, load ADRs 0004, 0005, 0012, 0013, 0019
 
 ## Completed
 
@@ -29,12 +29,12 @@
 | #11 | Backup & Restore | feature/issue-11-backup-restore | 2026-05-11 |
 | #10 | JSON Template Export / Import | feature/issue-10-json-template-export-import | 2026-05-11 |
 | #12 | Onboarding wizard | feature/issue-12-onboarding-v2 | 2026-05-11 |
+| #8 | Statistics — Calendar Visualisation | feature/issue-8-calendar-visualisation | 2026-05-12 |
 
 ## Pending (dependency order)
 
 | Phase | Issue | Title | Blocked by | ADRs to load |
 |---|---|---|---|---|
-| 6 | #8 | Statistics — Calendar Visualisation | — | 0005, 0012 |
 | 8 | #24 | Inline subcategory chip list in CategoryFormScreen | — | 0004, 0005, 0012, 0013, 0019 |
 
 ## Blocked
