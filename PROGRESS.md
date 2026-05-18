@@ -2,12 +2,7 @@
 
 ## Current
 
-| Field | Value |
-|---|---|
-| Issue | #38 Adaptive launcher icon + app label + Health Connect manifest |
-| Branch | feature/issue-38-adaptive-icon-app-label-manifest |
-| ADRs | none required |
-| Resume from | All acceptance criteria — implementing from scratch |
+_(none — all issues complete)_
 
 ## Completed
 
@@ -33,6 +28,7 @@
 | #12 | Onboarding wizard | feature/issue-12-onboarding-v2 | 2026-05-11 |
 | #8 | Statistics — Calendar Visualisation | feature/issue-8-calendar-visualisation | 2026-05-12 |
 | #24 | Inline subcategory chip list in CategoryFormScreen | feature/issue-24-inline-subcategory-chips | 2026-05-12 |
+| #38 | Adaptive launcher icon + app label + Health Connect manifest | feature/issue-38-adaptive-icon-app-label-manifest | 2026-05-18 |
 
 ## Pending (dependency order)
 
