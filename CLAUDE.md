@@ -54,6 +54,7 @@ lib/
 5. `/tdd` — tick GitHub issue checkboxes as each criterion passes
 6. `/simplify` post-review
 7. `/shared-adr` if a new architectural decision was made
-8. Commit + PR
-9. Update PROGRESS.md — move issue to Completed table with branch and date; set next issue as Current
-10. Close the GitHub issue — `gh issue close <N> --comment "Completed: merged on <date> (<branch>)"`; also close any parent PRD issue if all its children are now done
+8. Ask the user: "What should the version be? (current: `pubspec.yaml` → `version:` field, format `X.Y.Z+N`)" → update `pubspec.yaml` before committing
+9. Commit + PR
+10. Update PROGRESS.md — move issue to Completed table with branch and date; set next issue as Current
+11. Close the GitHub issue — `gh issue close <N> --comment "Completed: merged on <date> (<branch>)"`; also close any parent PRD issue if all its children are now done

@@ -2,7 +2,12 @@
 
 ## Current
 
-_(none — all issues complete)_
+| Field | Value |
+|---|---|
+| Issue | #38 Adaptive launcher icon + app label + Health Connect manifest |
+| Branch | feature/issue-38-adaptive-icon-app-label-manifest |
+| ADRs | none required |
+| Resume from | All acceptance criteria — implementing from scratch |
 
 ## Completed
 
