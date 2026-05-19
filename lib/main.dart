@@ -1,3 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:private_statistics/app.dart';
@@ -14,11 +17,21 @@ import 'package:workmanager/workmanager.dart';
 
 /// Application entry point.
 ///
-/// Initialises [AppDatabase], pre-warms [SharedPreferences] for the
-/// onboarding flag, registers the WorkManager Health Connect sync
-/// task, and injects dependencies via [ProviderScope] before running [App].
+/// Initialises Firebase (with Crashlytics wired for release builds),
+/// [AppDatabase], pre-warms [SharedPreferences] for the onboarding flag,
+/// registers the WorkManager Health Connect sync task, and injects
+/// dependencies via [ProviderScope] before running [App].
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+  if (kReleaseMode) {
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
 
   final db = AppDatabase();
   AppLogger.info('Database initialised');

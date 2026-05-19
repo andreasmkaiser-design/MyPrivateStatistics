@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "835442965797",
+    "project_id": "my-private-statistics",
+    "storage_bucket": "my-private-statistics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835442965797:android:86bd1b20b268f653aa2ecc",
+        "android_client_info": {
+          "package_name": "com.akaiser.private_statistics"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeqb6VgrZN10ayTk_huMw_lFhpfvpPdZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

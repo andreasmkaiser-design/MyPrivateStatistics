@@ -2,7 +2,11 @@
 
 ## Current
 
-_(none — all issues complete)_
+| Issue | Title | Branch | Resume from |
+|---|---|---|---|
+| #37 | Firebase Crashlytics integration | feature/issue-37-firebase-crashlytics | Code done; waiting for `android/app/google-services.json` from Firebase Console, then build + crash test |
+
+**ADRs for this issue:** ADR-0020 (already written at `docs/adr/0020-firebase-crashlytics-for-crash-reporting.md`)
 
 ## Completed
 
