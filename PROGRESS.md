@@ -2,11 +2,7 @@
 
 ## Current
 
-| Issue | Title | Branch | Resume from |
-|---|---|---|---|
-| #37 | Firebase Crashlytics integration | feature/issue-37-firebase-crashlytics | Code done; waiting for `android/app/google-services.json` from Firebase Console, then build + crash test |
-
-**ADRs for this issue:** ADR-0020 (already written at `docs/adr/0020-firebase-crashlytics-for-crash-reporting.md`)
+_(none — all issues complete)_
 
 ## Completed
 
@@ -33,6 +29,7 @@
 | #8 | Statistics — Calendar Visualisation | feature/issue-8-calendar-visualisation | 2026-05-12 |
 | #24 | Inline subcategory chip list in CategoryFormScreen | feature/issue-24-inline-subcategory-chips | 2026-05-12 |
 | #38 | Adaptive launcher icon + app label + Health Connect manifest | feature/issue-38-adaptive-icon-app-label-manifest | 2026-05-18 |
+| #37 | Firebase Crashlytics integration | feature/issue-37-firebase-crashlytics | 2026-05-19 |
 
 ## Pending (dependency order)
 
