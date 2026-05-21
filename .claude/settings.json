@@ -5,7 +5,9 @@
       "Bash(dart *)",
       "Bash(adb *)",
       "Bash(git *)",
-      "Bash(gh *)"
+      "Bash(gh *)",
+      "Skill(grill-me)",
+      "Skill(grill-me:*)"
     ]
   }
 }

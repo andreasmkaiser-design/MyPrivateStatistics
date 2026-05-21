@@ -32,6 +32,7 @@ These apply to every session, every file, every commit:
 - **Migrations:** every new Drift table or column change gets a numbered migration (ADR-0016)
 - **Dartdoc:** every public API must have `///` dartdoc — classes, constructors, fields, methods, getters, enum values; `public_member_api_docs: true` is enforced by the linter; use backticks for cross-file references not imported in the current file
 - **Terminology:** use domain terms from UBIQUITOUS_LANGUAGE.md in all identifiers (`Event` not `Entry`, `Template` not `Export`, `AnalysisWindow` not `Period`)
+- **Localisation:** every user-visible string must use an `AppLocalizations` key — never hardcode display text in widgets; `avoid_hardcoded_localization_strings: true` is enforced by the linter; add new keys to both `app_en.arb` and `app_de.arb` before using them
 
 ## Folder Structure
 
