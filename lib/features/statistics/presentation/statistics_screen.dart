@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:private_statistics/features/categories/domain/models/category.dart';
 import 'package:private_statistics/features/categories/domain/models/category_node.dart';
 import 'package:private_statistics/features/categories/providers/category_providers.dart';
@@ -17,6 +18,7 @@ import 'package:private_statistics/features/statistics/presentation/widgets/kpi_
 import 'package:private_statistics/features/statistics/presentation/widgets/temporal_proximity_kpi_card.dart';
 import 'package:private_statistics/features/statistics/presentation/widgets/time_window_selector.dart';
 import 'package:private_statistics/features/statistics/providers/statistics_providers.dart';
+import 'package:private_statistics/l10n/app_localizations.dart';
 
 /// The Statistics tab — source category selector, analysis window picker,
 /// Co-Occurrence results, time window picker, and Temporal Proximity results.
@@ -30,6 +32,7 @@ class StatisticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final treeAsync = ref.watch(categoryTreeProvider);
     final sourceCategoryUid = ref.watch(statisticsSourceCategoryProvider);
     final window = ref.watch(statisticsAnalysisWindowProvider);
@@ -58,10 +61,10 @@ class StatisticsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Source category',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
+                        decoration: InputDecoration(
+                          labelText: l10n.statisticsSourceCategoryLabel,
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 4,
                           ),
@@ -72,7 +75,6 @@ class StatisticsScreen extends ConsumerWidget {
                             value: sourceCategoryUid,
                             isExpanded: true,
                             isDense: true,
-                            hint: const Text('Select a category'),
                             items: allCategories
                                 .map(
                                   (c) => DropdownMenuItem(
@@ -108,9 +110,9 @@ class StatisticsScreen extends ConsumerWidget {
                 ),
               ),
               if (sourceCategoryUid == null)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   child: Center(
-                    child: Text('Select a category to see correlations.'),
+                    child: Text(l10n.statisticsSelectCategoryPrompt),
                   ),
                 )
               else ...[
@@ -182,6 +184,7 @@ class _CoOccurrenceSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return resultsAsync.when(
       loading: () => const SliverToBoxAdapter(
         child: Padding(
@@ -197,10 +200,10 @@ class _CoOccurrenceSliver extends StatelessWidget {
       ),
       data: (results) {
         if (results.isEmpty) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text('No co-occurrence data in this window.'),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(l10n.statisticsNoCoOccurrenceData),
             ),
           );
         }
@@ -209,7 +212,7 @@ class _CoOccurrenceSliver extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(
-                'Co-Occurrence',
+                l10n.statisticsCoOccurrenceTitle,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
@@ -251,6 +254,7 @@ class _ProximitySliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return resultsAsync.when(
       loading: () => const SliverToBoxAdapter(
         child: Padding(
@@ -258,10 +262,10 @@ class _ProximitySliver extends StatelessWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, __) => const SliverToBoxAdapter(
+      error: (_, __) => SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Failed to compute Temporal Proximity statistics.'),
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.statisticsProximityError),
         ),
       ),
       data: (results) {
@@ -270,7 +274,7 @@ class _ProximitySliver extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Temporal Proximity',
+                l10n.statisticsTemporalProximityTitle,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
@@ -283,9 +287,9 @@ class _ProximitySliver extends StatelessWidget {
               ),
             ),
             if (results.isEmpty)
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: Text('No temporal proximity data in this window.'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Text(l10n.statisticsNoProximityData),
               )
             else
               ...results.map(
@@ -423,7 +427,7 @@ class _DayEventsSheet extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              _formatDate(date),
+              _formatDate(date, Localizations.localeOf(context)),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -464,23 +468,8 @@ class _DayEventsSheet extends ConsumerWidget {
     );
   }
 
-  static String _formatDate(DateTime d) {
-    const months = <String>[
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
+  static String _formatDate(DateTime d, Locale locale) =>
+      DateFormat.yMMMMd(locale.languageCode).format(d);
 }
 
 class _EventSection extends StatelessWidget {

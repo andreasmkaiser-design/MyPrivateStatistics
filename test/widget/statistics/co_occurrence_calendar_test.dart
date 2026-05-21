@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:private_statistics/features/statistics/domain/models/calendar_data.dart';
 import 'package:private_statistics/features/statistics/domain/models/calendar_day_state.dart';
@@ -22,7 +23,15 @@ void main() {
   Widget buildWidget(
     CalendarData data, {
     void Function(DateTime)? onDayTapped,
+    Locale locale = const Locale('en'),
   }) => MaterialApp(
+    locale: locale,
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: const [Locale('en'), Locale('de')],
     home: Scaffold(
       body: SingleChildScrollView(
         child: CoOccurrenceCalendar(
@@ -159,6 +168,19 @@ void main() {
       await tester.tap(dayFinder(2024, 1, 1));
       await tester.pump();
       expect(callCount, 0);
+    });
+
+    testWidgets('de locale: month header shows German month name', (
+      tester,
+    ) async {
+      final data = makeData({
+        for (var i = 1; i <= 7; i++)
+          DateTime(2024, 1, i): CalendarDayState.neither,
+      });
+      await tester.pumpWidget(buildWidget(data, locale: const Locale('de')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Januar'), findsOneWidget);
     });
   });
 }

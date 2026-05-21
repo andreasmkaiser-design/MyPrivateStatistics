@@ -4,6 +4,7 @@
 
 _(none — all issues complete)_
 
+
 ## Completed
 
 | Issue | Title | PR | Date |
@@ -31,6 +32,7 @@ _(none — all issues complete)_
 | #38 | Adaptive launcher icon + app label + Health Connect manifest | feature/issue-38-adaptive-icon-app-label-manifest | 2026-05-18 |
 | #37 | Firebase Crashlytics integration | feature/issue-37-firebase-crashlytics | 2026-05-19 |
 | #44 | Onboarding: smart screen skipping, version number, HC permission fix | feature/issue-44-onboarding-smart-skip | 2026-05-21 |
+| #45 | i18n: German translations for Statistics + Screen 2 + dropdown fix | feature/issue-45-i18n-statistics-de | 2026-05-21 |
 
 ## Pending (dependency order)
 

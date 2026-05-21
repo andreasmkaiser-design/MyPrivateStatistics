@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:private_statistics/features/statistics/domain/models/co_occurrence_result.dart';
+import 'package:private_statistics/l10n/app_localizations.dart';
 
 /// A card displaying the plain-language co-occurrence summary for a single
 /// candidate category (ADR-0017).
@@ -25,6 +26,7 @@ class KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scorePercent = '${(result.score * 100).toStringAsFixed(0)}%';
 
@@ -52,9 +54,12 @@ class KpiCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '$sourceCategoryName and '
-              '${result.candidateCategoryName} co-occurred on '
-              '${result.sharedDays} of ${result.unionDays} days',
+              l10n.statisticsCoOccurrenceSummary(
+                sourceCategoryName,
+                result.candidateCategoryName,
+                result.sharedDays,
+                result.unionDays,
+              ),
               style: theme.textTheme.bodyMedium,
             ),
             if (result.hasLimitedData) ...[
@@ -69,8 +74,7 @@ class KpiCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      'Limited data — result may not be statistically'
-                      ' significant.',
+                      l10n.statisticsLimitedData,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.secondary,
                       ),

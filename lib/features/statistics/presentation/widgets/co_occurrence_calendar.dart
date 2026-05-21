@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:private_statistics/features/statistics/domain/models/calendar_data.dart';
 import 'package:private_statistics/features/statistics/domain/models/calendar_day_state.dart';
 
@@ -75,25 +76,11 @@ class _MonthSection extends StatelessWidget {
 
   static const _weekLabels = <String>['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-  static const _monthNames = <String>[
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final locale = Localizations.localeOf(context);
     final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
     // weekday of the 1st: 1=Monday … 7=Sunday → leading blank cells
     final leadingBlanks = DateTime(month.year, month.month).weekday - 1;
@@ -104,7 +91,7 @@ class _MonthSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
-            '${_monthNames[month.month - 1]} ${month.year}',
+            DateFormat('MMMM y', locale.languageCode).format(month),
             style: theme.textTheme.titleSmall,
           ),
         ),

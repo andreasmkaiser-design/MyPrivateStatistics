@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:private_statistics/features/statistics/domain/models/temporal_proximity_result.dart';
+import 'package:private_statistics/l10n/app_localizations.dart';
 
 /// A card displaying the plain-language temporal proximity summary for a
 /// single candidate category (ADR-0017, mode A).
@@ -28,6 +29,7 @@ class TemporalProximityKpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scorePercent = '${(result.score * 100).toStringAsFixed(0)}%';
 
@@ -55,8 +57,12 @@ class TemporalProximityKpiCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${result.candidateCategoryName} followed $sourceCategoryName'
-              ' within $timeWindowLabel in $scorePercent of cases',
+              l10n.statisticsProximitySummary(
+                result.candidateCategoryName,
+                sourceCategoryName,
+                timeWindowLabel,
+                (result.score * 100).toStringAsFixed(0),
+              ),
               style: theme.textTheme.bodyMedium,
             ),
             if (result.hasLimitedData) ...[
@@ -71,8 +77,7 @@ class TemporalProximityKpiCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      'Limited data — result may not be statistically'
-                      ' significant.',
+                      l10n.statisticsLimitedData,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.secondary,
                       ),

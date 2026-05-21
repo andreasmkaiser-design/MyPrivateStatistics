@@ -48,5 +48,15 @@
   "onboardingScreen3ExampleSubtitle": "Enthält Schlaf und Sport mit vorgefertigten Feldern.",
   "onboardingScreen3EmptyTitle": "Leer starten",
   "onboardingScreen3EmptySubtitle": "Beginne mit einem leeren Bereich und erstelle eigene Kategorien.",
-  "onboardingScreen3SetupError": "Einrichtung fehlgeschlagen. Bitte versuche es erneut."
+  "onboardingScreen3SetupError": "Einrichtung fehlgeschlagen. Bitte versuche es erneut.",
+  "statisticsSourceCategoryLabel": "Quellkategorie",
+  "statisticsSelectCategoryPrompt": "Kategorie auswählen, um Korrelationen zu sehen.",
+  "statisticsCoOccurrenceTitle": "Gemeinsames Auftreten",
+  "statisticsNoCoOccurrenceData": "Keine Daten zum gemeinsamen Auftreten in diesem Zeitraum.",
+  "statisticsTemporalProximityTitle": "Zeitliche Nähe",
+  "statisticsNoProximityData": "Keine Daten zur zeitlichen Nähe in diesem Zeitraum.",
+  "statisticsProximityError": "Fehler beim Berechnen der zeitlichen Nähe.",
+  "statisticsLimitedData": "Wenig Daten — Ergebnis möglicherweise nicht statistisch signifikant.",
+  "statisticsCoOccurrenceSummary": "{source} und {candidate} traten gemeinsam an {shared} von {union} Tagen auf",
+  "statisticsProximitySummary": "{candidate} folgte {source} innerhalb von {timeWindow} in {score}% der Fälle"
 }

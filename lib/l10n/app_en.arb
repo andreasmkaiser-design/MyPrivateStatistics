@@ -207,5 +207,57 @@
   "onboardingScreen3SetupError": "Setup failed. Please try again.",
   "@onboardingScreen3SetupError": {
     "description": "Snackbar error on onboarding screen 3 when seeding the database fails"
+  },
+  "statisticsSourceCategoryLabel": "Source category",
+  "@statisticsSourceCategoryLabel": {
+    "description": "Label for the source category dropdown on the Statistics screen"
+  },
+  "statisticsSelectCategoryPrompt": "Select a category to see correlations.",
+  "@statisticsSelectCategoryPrompt": {
+    "description": "Prompt shown when no source category is selected on the Statistics screen"
+  },
+  "statisticsCoOccurrenceTitle": "Co-Occurrence",
+  "@statisticsCoOccurrenceTitle": {
+    "description": "Section title for the co-occurrence results on the Statistics screen"
+  },
+  "statisticsNoCoOccurrenceData": "No co-occurrence data in this window.",
+  "@statisticsNoCoOccurrenceData": {
+    "description": "Shown when there are no co-occurrence results in the selected analysis window"
+  },
+  "statisticsTemporalProximityTitle": "Temporal Proximity",
+  "@statisticsTemporalProximityTitle": {
+    "description": "Section title for the temporal proximity results on the Statistics screen"
+  },
+  "statisticsNoProximityData": "No temporal proximity data in this window.",
+  "@statisticsNoProximityData": {
+    "description": "Shown when there are no temporal proximity results in the selected time window"
+  },
+  "statisticsProximityError": "Failed to compute Temporal Proximity statistics.",
+  "@statisticsProximityError": {
+    "description": "Error message shown when the temporal proximity computation fails"
+  },
+  "statisticsLimitedData": "Limited data — result may not be statistically significant.",
+  "@statisticsLimitedData": {
+    "description": "Warning shown on a KPI card when the data set is too small for reliable statistics"
+  },
+  "statisticsCoOccurrenceSummary": "{source} and {candidate} co-occurred on {shared} of {union} days",
+  "@statisticsCoOccurrenceSummary": {
+    "description": "Plain-language co-occurrence summary on a KPI card",
+    "placeholders": {
+      "source": { "type": "String" },
+      "candidate": { "type": "String" },
+      "shared": { "type": "int" },
+      "union": { "type": "int" }
+    }
+  },
+  "statisticsProximitySummary": "{candidate} followed {source} within {timeWindow} in {score}% of cases",
+  "@statisticsProximitySummary": {
+    "description": "Plain-language temporal proximity summary on a KPI card",
+    "placeholders": {
+      "candidate": { "type": "String" },
+      "source": { "type": "String" },
+      "timeWindow": { "type": "String" },
+      "score": { "type": "String" }
+    }
   }
 }
