@@ -30,6 +30,7 @@ _(none — all issues complete)_
 | #24 | Inline subcategory chip list in CategoryFormScreen | feature/issue-24-inline-subcategory-chips | 2026-05-12 |
 | #38 | Adaptive launcher icon + app label + Health Connect manifest | feature/issue-38-adaptive-icon-app-label-manifest | 2026-05-18 |
 | #37 | Firebase Crashlytics integration | feature/issue-37-firebase-crashlytics | 2026-05-19 |
+| #44 | Onboarding: smart screen skipping, version number, HC permission fix | feature/issue-44-onboarding-smart-skip | 2026-05-21 |
 
 ## Pending (dependency order)
 
