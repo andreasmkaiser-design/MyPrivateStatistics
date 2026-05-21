@@ -2,8 +2,11 @@
 
 ## Current
 
-
-_(none — all issues complete)_
+- **Issue:** #35 Privacy policy + GitHub Pages
+- **Branch:** feature/issue-35-privacy-policy
+- **Started:** 2026-05-21
+- **Status:** In progress — HTML files created, GitHub Pages must be enabled manually in repo Settings (main branch, /docs folder)
+- **Resume from:** Enable GitHub Pages in repo Settings, then verify URL loads
 
 
 ## Completed
@@ -38,7 +41,10 @@ _(none — all issues complete)_
 
 ## Pending (dependency order)
 
-_(none)_
+| Issue | Title | Blocked by |
+|---|---|---|
+| #36 | Release signing + CI/CD pipeline | — |
+| #40 | Play Store listing + store assets | #35, #36 |
 
 ## Blocked
 
@@ -49,4 +55,5 @@ _(none)_
 - Issues use `/design-an-interface` before `/tdd`: #13, #15, #9, #6
 - New ADR written during implementation → add to ADRs column for all affected pending issues
 - Context > 70%: finish current red-green-refactor cycle → commit → update "Resume from" → new session
-- Parent PRDs: #20 (Category name uniqueness → impl: #22 ✓, #23 ✓), #21 (Inline subcategory creation → impl: #24), #25 (Text input + reactive tree bugs → impl: #26 ✓, #27 ✓, #29 ✓)
+- Parent PRDs: #20 (Category name uniqueness → impl: #22 ✓, #23 ✓), #21 (Inline subcategory creation → impl: #24), #25 (Text input + reactive tree bugs → impl: #26 ✓, #27 ✓, #29 ✓), #43 (Bug fixes → impl: #44 ✓, #45 ✓, #46 ✓)
+- GitHub Pages URL: https://andreasmkaiser-design.github.io/MyPrivateStatistics/
