@@ -2,11 +2,11 @@
 
 ## Current
 
-- **Issue:** #35 Privacy policy + GitHub Pages
-- **Branch:** feature/issue-35-privacy-policy
+- **Issue:** #36 Release signing + CI/CD pipeline
+- **Branch:** feature/issue-36-release-signing
 - **Started:** 2026-05-21
-- **Status:** In progress — HTML files created, GitHub Pages must be enabled manually in repo Settings (main branch, /docs folder)
-- **Resume from:** Enable GitHub Pages in repo Settings, then verify URL loads
+- **Status:** Not started
+- **Resume from:** —
 
 
 ## Completed
@@ -38,13 +38,13 @@
 | #44 | Onboarding: smart screen skipping, version number, HC permission fix | feature/issue-44-onboarding-smart-skip | 2026-05-21 |
 | #45 | i18n: German translations for Statistics + Screen 2 + dropdown fix | feature/issue-45-i18n-statistics-de | 2026-05-21 |
 | #46 | Settings: HC connection status + grant access | feature/issue-46-settings-hc-status | 2026-05-21 |
+| #35 | Privacy policy + GitHub Pages | feature/issue-35-privacy-policy | 2026-05-21 |
 
 ## Pending (dependency order)
 
 | Issue | Title | Blocked by |
 |---|---|---|
-| #36 | Release signing + CI/CD pipeline | — |
-| #40 | Play Store listing + store assets | #35, #36 |
+| #40 | Play Store listing + store assets | #36 |
 
 ## Blocked
 
