@@ -14,12 +14,35 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final syncHourAsync = ref.watch(syncHourProvider);
+    final hcGranted = ref.watch(hcPermissionNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
           _SectionHeader(title: l10n.healthSyncSectionTitle),
+          hcGranted.when(
+            data: (granted) => granted
+                ? ListTile(
+                    title: Text(l10n.healthConnectConnected),
+                    leading: const Icon(Icons.check_circle),
+                  )
+                : ListTile(
+                    title: Text(l10n.healthConnectGrantButton),
+                    leading: const Icon(Icons.link),
+                    onTap: () => ref
+                        .read(hcPermissionNotifierProvider.notifier)
+                        .requestPermission(),
+                  ),
+            loading: () => const ListTile(
+              leading: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           ListTile(
             title: Text(l10n.healthSyncNowButton),
             trailing: const Icon(Icons.sync),

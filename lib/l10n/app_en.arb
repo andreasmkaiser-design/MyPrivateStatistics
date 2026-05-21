@@ -55,6 +55,14 @@
   "@healthSyncDailyTimeLabel": {
     "description": "Label for the daily sync time picker tile"
   },
+  "healthConnectConnected": "Health Connect connected",
+  "@healthConnectConnected": {
+    "description": "Status label in Settings when Health Connect permissions are granted"
+  },
+  "healthConnectGrantButton": "Grant Health Connect access",
+  "@healthConnectGrantButton": {
+    "description": "Tappable tile label in Settings to trigger the Health Connect authorization flow"
+  },
   "backupSectionTitle": "Backup & Restore",
   "@backupSectionTitle": {
     "description": "Settings section header for Backup & Restore"

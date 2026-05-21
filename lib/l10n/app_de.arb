@@ -13,6 +13,8 @@
   "healthSyncPermissionDenied": "Health Connect-Berechtigung erforderlich",
   "healthSyncUnavailable": "Health Connect ist auf diesem Gerät nicht verfügbar",
   "healthSyncDailyTimeLabel": "Tägliche Synchronisierungszeit",
+  "healthConnectConnected": "Health Connect verbunden",
+  "healthConnectGrantButton": "Health Connect-Zugriff erteilen",
   "backupSectionTitle": "Sicherung & Wiederherstellung",
   "backupExportButton": "Sicherung exportieren",
   "backupRestoreButton": "Sicherung wiederherstellen",

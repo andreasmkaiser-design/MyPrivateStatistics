@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:health/health.dart';
-import 'package:private_statistics/core/logging/app_logger.dart';
+import 'package:private_statistics/features/health/providers/health_providers.dart';
 import 'package:private_statistics/features/onboarding/domain/onboarding_completion.dart';
 import 'package:private_statistics/features/onboarding/presentation/onboarding_screen_1.dart';
 import 'package:private_statistics/features/onboarding/presentation/onboarding_screen_2.dart';
@@ -42,16 +41,6 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     super.dispose();
   }
 
-  Future<bool> _requestHcPermission() async {
-    try {
-      await Health().configure();
-      return Health().requestAuthorization(kOnboardingHcTypes);
-    } on Exception catch (e, st) {
-      AppLogger.error('Health Connect permission request failed', e, st);
-      return false;
-    }
-  }
-
   void _nextPage(int pageCount) {
     if (_pageIndex >= pageCount - 1) {
       ref.read(onboardingNotifierProvider.notifier).skip();
@@ -79,6 +68,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     final pageCount = 1 + (showScreen2 ? 1 : 0) + (showScreen3 ? 1 : 0);
 
     final notifier = ref.read(onboardingNotifierProvider.notifier);
+    final requestHcPermission = ref
+        .read(hcPermissionNotifierProvider.notifier)
+        .requestPermission;
 
     return PageView(
       controller: _pageController,
@@ -93,7 +85,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           OnboardingScreen2(
             onContinue: () => _nextPage(pageCount),
             onSkip: notifier.skip,
-            requestPermission: _requestHcPermission,
+            requestPermission: requestHcPermission,
           ),
         if (showScreen3)
           OnboardingScreen3(onChoice: notifier.complete, onSkip: notifier.skip),
