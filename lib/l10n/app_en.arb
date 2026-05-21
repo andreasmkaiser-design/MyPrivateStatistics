@@ -146,6 +146,16 @@
   "@onboardingScreen1Body": {
     "description": "Body text on onboarding screen 1 explaining the app concept"
   },
+  "onboardingScreen1Version": "Version {version}",
+  "@onboardingScreen1Version": {
+    "description": "Version label displayed prominently on onboarding screen 1",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
   "onboardingScreen2Title": "Health Connect",
   "@onboardingScreen2Title": {
     "description": "Headline on onboarding screen 2"
@@ -161,6 +171,18 @@
   "onboardingScreen2ContinueButton": "Continue",
   "@onboardingScreen2ContinueButton": {
     "description": "Continue button on onboarding screen 2 (proceeds without granting HC)"
+  },
+  "onboardingScreen2PermissionGranted": "Permission granted",
+  "@onboardingScreen2PermissionGranted": {
+    "description": "Status text on onboarding screen 2 after Health Connect permission was granted"
+  },
+  "onboardingScreen2PermissionDenied": "Permission not granted — you can enable it later in Settings.",
+  "@onboardingScreen2PermissionDenied": {
+    "description": "Status text on onboarding screen 2 after Health Connect permission was denied"
+  },
+  "onboardingScreen2PermissionError": "Failed to request Health Connect permission. Please try again.",
+  "@onboardingScreen2PermissionError": {
+    "description": "Error text on onboarding screen 2 when the permission request throws an exception"
   },
   "onboardingScreen3Title": "Get started",
   "@onboardingScreen3Title": {
@@ -181,5 +203,9 @@
   "onboardingScreen3EmptySubtitle": "Begin with a blank slate and create your own categories.",
   "@onboardingScreen3EmptySubtitle": {
     "description": "Subtitle for the empty choice on onboarding screen 3"
+  },
+  "onboardingScreen3SetupError": "Setup failed. Please try again.",
+  "@onboardingScreen3SetupError": {
+    "description": "Snackbar error on onboarding screen 3 when seeding the database fails"
   }
 }

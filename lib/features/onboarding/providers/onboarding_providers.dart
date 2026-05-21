@@ -1,11 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:health/health.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:private_statistics/core/database/database_provider.dart';
+import 'package:private_statistics/core/logging/app_logger.dart';
 import 'package:private_statistics/features/categories/data/category_repository_impl.dart';
+import 'package:private_statistics/features/categories/providers/category_providers.dart';
 import 'package:private_statistics/features/onboarding/data/drift_category_seeder.dart';
 import 'package:private_statistics/features/onboarding/domain/category_seeder.dart';
 import 'package:private_statistics/features/onboarding/domain/default_seed_specs.dart';
 import 'package:private_statistics/features/onboarding/domain/onboarding_completion.dart';
 import 'package:private_statistics/features/onboarding/domain/onboarding_store.dart';
+
+/// Health Connect data types used across onboarding screens.
+const kOnboardingHcTypes = [
+  HealthDataType.STEPS,
+  HealthDataType.SLEEP_SESSION,
+  HealthDataType.WORKOUT,
+];
 
 /// Provides the [OnboardingStore].
 ///
@@ -80,3 +91,38 @@ class OnboardingNotifier extends Notifier<OnboardingCompletion> {
     }
   }
 }
+
+/// Whether all Health Connect permissions are already granted.
+///
+/// Returns `false` on any error (HC not installed, configure failed, etc.).
+/// Override in tests via [ProviderScope] overrides to avoid platform calls.
+final hcPermissionsGrantedProvider = FutureProvider<bool>((ref) async {
+  try {
+    await Health().configure();
+    final granted = await Health().hasPermissions(kOnboardingHcTypes);
+    return granted ?? false;
+  } on Exception catch (e, st) {
+    AppLogger.warning('HC permission pre-check failed', e, st);
+    return false;
+  }
+});
+
+/// Current app version string from the OS package info.
+///
+/// Returns an empty string when the platform info is unavailable.
+/// Override in tests via [ProviderScope] overrides to avoid platform calls.
+final appVersionProvider = FutureProvider<String>((ref) async {
+  try {
+    return (await PackageInfo.fromPlatform()).version;
+  } on Exception {
+    return '';
+  }
+});
+
+/// Whether the categories table is non-empty (re-install or existing user).
+///
+/// Override in tests via [ProviderScope] overrides.
+final hasCategoriesProvider = FutureProvider<bool>((ref) async {
+  final cats = await ref.read(categoryRepositoryProvider).getAll();
+  return cats.isNotEmpty;
+});

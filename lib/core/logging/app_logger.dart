@@ -21,8 +21,12 @@ abstract final class AppLogger {
   /// Logs an informational message.
   static void info(String message) => _logger.i(message);
 
-  /// Logs a warning.
-  static void warning(String message) => _logger.w(message);
+  /// Logs a warning with an optional [error] object and [stackTrace].
+  static void warning(
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) => _logger.w(message, error: error, stackTrace: stackTrace);
 
   /// Logs a non-fatal error with an optional [error] object and [stackTrace].
   static void error(String message, [Object? error, StackTrace? stackTrace]) =>

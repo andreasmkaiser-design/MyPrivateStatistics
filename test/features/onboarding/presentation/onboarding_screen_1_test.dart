@@ -4,21 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:private_statistics/features/onboarding/presentation/onboarding_screen_1.dart';
 import 'package:private_statistics/l10n/app_localizations.dart';
 
-Widget _buildScreen({VoidCallback? onNext, VoidCallback? onSkip}) =>
-    MaterialApp(
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: OnboardingScreen1(
-          onNext: onNext ?? () {},
-          onSkip: onSkip ?? () {},
-        ),
-      ),
-    );
+Widget _buildScreen({
+  VoidCallback? onNext,
+  VoidCallback? onSkip,
+  String version = '',
+}) => MaterialApp(
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ],
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(
+    body: OnboardingScreen1(
+      onNext: onNext ?? () {},
+      onSkip: onSkip ?? () {},
+      version: version,
+    ),
+  ),
+);
 
 void main() {
   testWidgets('Screen 1 renders the concept explanation headline', (
@@ -39,6 +43,24 @@ void main() {
     expect(find.textContaining('Track the events that matter'), findsOneWidget);
   });
 
+  testWidgets('Screen 1 shows version label when version is non-empty', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildScreen(version: '1.2.3'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('1.2.3'), findsOneWidget);
+  });
+
+  testWidgets('Screen 1 hides version label when version is empty', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildScreen());
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Version'), findsNothing);
+  });
+
   testWidgets('Screen 1 has a Skip button that triggers onSkip callback', (
     tester,
   ) async {
@@ -57,7 +79,7 @@ void main() {
     await tester.pumpWidget(_buildScreen(onNext: () => nextCalled = true));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Next'));
+    await tester.tap(find.text('Continue'));
     expect(nextCalled, isTrue);
   });
 }

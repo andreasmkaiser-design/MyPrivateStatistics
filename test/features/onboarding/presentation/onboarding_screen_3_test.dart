@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +8,7 @@ import 'package:private_statistics/features/onboarding/presentation/onboarding_s
 import 'package:private_statistics/l10n/app_localizations.dart';
 
 Widget _buildScreen({
-  void Function(SeedChoice)? onChoice,
+  Future<void> Function(SeedChoice)? onChoice,
   VoidCallback? onSkip,
 }) => MaterialApp(
   localizationsDelegates: const [
@@ -17,7 +19,7 @@ Widget _buildScreen({
   supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(
     body: OnboardingScreen3(
-      onChoice: onChoice ?? (_) {},
+      onChoice: onChoice ?? (_) async {},
       onSkip: onSkip ?? () {},
     ),
   ),
@@ -35,10 +37,14 @@ void main() {
   testWidgets('tapping "Start with example categories" calls onChoice with '
       'SeedChoice.exampleCategories', (tester) async {
     SeedChoice? chosen;
-    await tester.pumpWidget(_buildScreen(onChoice: (c) => chosen = c));
+    await tester.pumpWidget(_buildScreen(onChoice: (c) async => chosen = c));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Start with example categories'));
+    // Use pump() not pumpAndSettle(): on success the spinner persists until
+    // navigation removes the widget, so pumpAndSettle() would time out.
+    await tester.pump();
+    await tester.pump();
     expect(chosen, equals(SeedChoice.exampleCategories));
   });
 
@@ -46,11 +52,82 @@ void main() {
     tester,
   ) async {
     SeedChoice? chosen;
-    await tester.pumpWidget(_buildScreen(onChoice: (c) => chosen = c));
+    await tester.pumpWidget(_buildScreen(onChoice: (c) async => chosen = c));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Start empty'));
+    await tester.pump();
+    await tester.pump();
     expect(chosen, equals(SeedChoice.empty));
+  });
+
+  testWidgets('"Start with example categories" tile shows loading state while '
+      'onChoice is in-flight and both tiles are disabled', (tester) async {
+    final completer = Completer<void>();
+    await tester.pumpWidget(_buildScreen(onChoice: (_) => completer.future));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Start with example categories'));
+    await tester.pump(); // one frame — future not yet resolved
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Both tiles must be disabled while loading
+    final exampleTile = tester.widget<ListTile>(
+      find
+          .ancestor(
+            of: find.text('Start with example categories'),
+            matching: find.byType(ListTile),
+          )
+          .first,
+    );
+    final emptyTile = tester.widget<ListTile>(
+      find
+          .ancestor(
+            of: find.text('Start empty'),
+            matching: find.byType(ListTile),
+          )
+          .first,
+    );
+    expect(exampleTile.onTap, isNull);
+    expect(emptyTile.onTap, isNull);
+
+    completer.complete();
+    // Use pump() not pumpAndSettle(): spinner persists on success until nav.
+    await tester.pump();
+    await tester.pump();
+  });
+
+  testWidgets('shows error snackbar when onChoice throws', (tester) async {
+    await tester.pumpWidget(
+      _buildScreen(onChoice: (_) async => throw Exception('seed failed')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Start with example categories'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Setup failed'), findsOneWidget);
+  });
+
+  testWidgets('tiles are re-enabled after onChoice throws', (tester) async {
+    await tester.pumpWidget(
+      _buildScreen(onChoice: (_) async => throw Exception('seed failed')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Start with example categories'));
+    await tester.pumpAndSettle();
+
+    final exampleTile = tester.widget<ListTile>(
+      find
+          .ancestor(
+            of: find.text('Start with example categories'),
+            matching: find.byType(ListTile),
+          )
+          .first,
+    );
+    expect(exampleTile.onTap, isNotNull);
   });
 
   testWidgets('Skip button triggers onSkip callback', (tester) async {

@@ -1,7 +1,7 @@
 name: private_statistics
 description: Personal event tracking and statistical correlation for Android.
 publish_to: 'none'
-version: 1.0.3+3
+version: 1.0.4+4
 
 environment:
   sdk: ^3.11.0
@@ -20,6 +20,7 @@ dependencies:
   health: ^12.0.0
   intl: ^0.20.2
   logger: ^2.5.0
+  package_info_plus: ^9.0.1
   path: ^1.9.1
   path_provider: ^2.1.5
   riverpod_annotation: ^2.4.1

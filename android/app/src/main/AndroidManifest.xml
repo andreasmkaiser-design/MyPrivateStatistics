@@ -52,6 +52,10 @@
     <queries>
         <!-- Required to interact with the Health Connect app -->
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- Required to open the Health Connect settings screen (Android 14+) -->
+        <intent>
+            <action android:name="androidx.health.ACTION_HEALTH_CONNECT_SETTINGS" />
+        </intent>
         <!-- Required to query activities that can process text, see:
              https://developer.android.com/training/package-visibility and
              https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.

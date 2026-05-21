@@ -2,7 +2,9 @@ pre-commit:
   parallel: false
   commands:
     format:
-      run: dart format --set-exit-if-changed .
+      # Scope to source directories to avoid walking into build/ artifacts
+      # which contain Windows long-path files that dart format cannot handle.
+      run: dart format --set-exit-if-changed lib/ test/
     analyze:
       run: flutter analyze --no-fatal-infos
     test:

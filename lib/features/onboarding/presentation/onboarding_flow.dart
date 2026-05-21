@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:health/health.dart';
+import 'package:private_statistics/core/logging/app_logger.dart';
 import 'package:private_statistics/features/onboarding/domain/onboarding_completion.dart';
 import 'package:private_statistics/features/onboarding/presentation/onboarding_screen_1.dart';
 import 'package:private_statistics/features/onboarding/presentation/onboarding_screen_2.dart';
@@ -9,12 +10,14 @@ import 'package:private_statistics/features/onboarding/providers/onboarding_prov
 
 /// Root widget for the onboarding wizard.
 ///
-/// Hosts a [PageView] with three screens. Page navigation is driven by a local
-/// [PageController]; completion and skip are delegated to
-/// `OnboardingNotifier`. When `OnboardingNotifier.skip` or
-/// `OnboardingNotifier.complete` sets [OnboardingCompletion.isDone] to `true`,
-/// `App` rebuilds and replaces this widget with `AppShell` automatically —
-/// no [Navigator] call is needed here.
+/// Watches [hcPermissionsGrantedProvider], [hasCategoriesProvider], and
+/// [appVersionProvider] to determine which screens to show:
+/// - Screen 2 is skipped when HC permissions are already granted.
+/// - Screen 3 is skipped when the categories table is non-empty.
+///
+/// Completion and skip are delegated to `OnboardingNotifier`. When
+/// [OnboardingCompletion.isDone] becomes `true`, `App` rebuilds and replaces
+/// this widget with `AppShell` automatically — no [Navigator] call is needed.
 class OnboardingFlow extends ConsumerStatefulWidget {
   /// Creates the [OnboardingFlow].
   const OnboardingFlow({super.key});
@@ -25,12 +28,7 @@ class OnboardingFlow extends ConsumerStatefulWidget {
 
 class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   late final PageController _pageController;
-
-  static const _types = [
-    HealthDataType.STEPS,
-    HealthDataType.SLEEP_SESSION,
-    HealthDataType.WORKOUT,
-  ];
+  int _pageIndex = 0;
 
   @override
   void initState() {
@@ -44,42 +42,61 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     super.dispose();
   }
 
-  void _nextPage() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
   Future<bool> _requestHcPermission() async {
     try {
       await Health().configure();
-      return Health().requestAuthorization(_types);
-    } on Exception catch (_) {
+      return Health().requestAuthorization(kOnboardingHcTypes);
+    } on Exception catch (e, st) {
+      AppLogger.error('Health Connect permission request failed', e, st);
       return false;
+    }
+  }
+
+  void _nextPage(int pageCount) {
+    if (_pageIndex >= pageCount - 1) {
+      ref.read(onboardingNotifierProvider.notifier).skip();
+    } else {
+      _pageIndex++;
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final hcGranted = ref.watch(hcPermissionsGrantedProvider);
+    final hasCategories = ref.watch(hasCategoriesProvider);
+    final version = ref.watch(appVersionProvider);
+
+    if (hcGranted.isLoading || hasCategories.isLoading || version.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final showScreen2 = !(hcGranted.value ?? false);
+    final showScreen3 = !(hasCategories.value ?? false);
+    final pageCount = 1 + (showScreen2 ? 1 : 0) + (showScreen3 ? 1 : 0);
+
+    final notifier = ref.read(onboardingNotifierProvider.notifier);
+
     return PageView(
       controller: _pageController,
       physics: const NeverScrollableScrollPhysics(),
       children: [
         OnboardingScreen1(
-          onNext: _nextPage,
-          onSkip: () => ref.read(onboardingNotifierProvider.notifier).skip(),
+          onNext: () => _nextPage(pageCount),
+          onSkip: notifier.skip,
+          version: version.value ?? '',
         ),
-        OnboardingScreen2(
-          onContinue: _nextPage,
-          onSkip: () => ref.read(onboardingNotifierProvider.notifier).skip(),
-          requestPermission: _requestHcPermission,
-        ),
-        OnboardingScreen3(
-          onChoice: (choice) =>
-              ref.read(onboardingNotifierProvider.notifier).complete(choice),
-          onSkip: () => ref.read(onboardingNotifierProvider.notifier).skip(),
-        ),
+        if (showScreen2)
+          OnboardingScreen2(
+            onContinue: () => _nextPage(pageCount),
+            onSkip: notifier.skip,
+            requestPermission: _requestHcPermission,
+          ),
+        if (showScreen3)
+          OnboardingScreen3(onChoice: notifier.complete, onSkip: notifier.skip),
       ],
     );
   }
