@@ -54,4 +54,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/build/
+
+# Release keystore — never commit
+*.jks
+*.keystore
 .claude/settings.local.json
