@@ -38,9 +38,10 @@ jobs:
         run: flutter build appbundle --release
 
       - name: Upload to Play Store internal track
-        uses: google-github-actions/upload-play@v2
+        uses: r0adkll/upload-google-play@v1
         with:
-          credentials_json: ${{ secrets.PLAY_STORE_JSON_KEY }}
-          package_name: com.akaiser.private_statistics
-          aab: build/app/outputs/bundle/release/app-release.aab
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
+          packageName: com.akaiser.private_statistics
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
+          status: completed
