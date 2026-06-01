@@ -38,7 +38,7 @@ jobs:
         run: flutter build appbundle --release
 
       - name: Upload to Play Store internal track
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v3
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON_KEY }}
           packageName: com.akaiser.private_statistics
