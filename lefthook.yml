@@ -1,6 +1,11 @@
 pre-commit:
   parallel: false
   commands:
+    lint-actions:
+      glob: ".github/workflows/*.yml"
+      run: actionlint {staged_files}
+      skip:
+        - run: "! command -v actionlint"
     format:
       # Scope to source directories to avoid walking into build/ artifacts
       # which contain Windows long-path files that dart format cannot handle.
